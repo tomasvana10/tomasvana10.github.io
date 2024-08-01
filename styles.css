@@ -1,0 +1,418 @@
+/* ----- Misc styling, as well as generalised styling (e.g. buttons) ----- */
+html {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text_colour);
+}
+
+body {
+    /* These styles are from https://css-pattern.com */
+    --s: 70px; /* the size */
+    --c: var(--main_colour);
+
+    --_s: calc(2 * var(--s)) calc(2 * var(--s));
+    --_g: 35.36% 35.36% at;
+    --_c: #0000 66%, var(--sub_colour) 68% 70%, #0000 72%;
+    background: radial-gradient(var(--_g) 100% 25%, var(--_c)) var(--s) var(--s) /
+            var(--_s),
+        radial-gradient(var(--_g) 0 75%, var(--_c)) var(--s) var(--s) /
+            var(--_s),
+        radial-gradient(var(--_g) 100% 25%, var(--_c)) 0 0 / var(--_s),
+        radial-gradient(var(--_g) 0 75%, var(--_c)) 0 0 / var(--_s),
+        repeating-conic-gradient(var(--c) 0 25%, #0000 0 50%) 0 0 / var(--_s),
+        radial-gradient(var(--_c)) 0 calc(var(--s) / 2) / var(--s) var(--s)
+            var(--c);
+}
+
+/* Integration of scaling from the tkinter GUI. */
+li,
+.toggle_label,
+.special_button,
+.dropdown_button,
+h2,
+button {
+    font-size: calc(1em * var(--scaling));
+}
+
+.def_heading {
+    font-size: calc(1.1em * var(--scaling));
+}
+
+h2 {
+    font-size: calc(24px * var(--scaling));
+}
+
+p {
+    font-size: calc(16px * var(--scaling));
+}
+
+.container {
+    /* Holds the crossword grid and the definitions div */
+    margin: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 3em;
+    position: relative;
+}
+
+button {
+    /* Standard button design. */
+    -webkit-border-radius: 5;
+    -moz-border-radius: 5;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    padding: 10px 20px 10px 20px;
+    background: var(--button_colour);
+    color: var(--button_text_colour);
+    text-decoration: none;
+}
+
+button:hover {
+    background: var(--button_hover_colour);
+    text-decoration: none;
+}
+
+.non_empty_cell.lock_in {
+    color: var(--correct_colour);
+}
+
+.non_empty_cell.wrong {
+    color: var(--wrong_colour);
+}
+
+.keybind_span {
+    color: var(--correct_colour);
+}
+/* ---------- */
+
+/* ----- Styling for the crossword grid and its cells ----- */
+.grid {
+    display: -ms-grid;
+    display: grid;
+    /* Configure `--dimensions` amount of rows/columns with a size of 
+    ``95vmin / --dimensions`` */
+    grid-template-columns: repeat(var(--dimensions), var(--grid_size));
+    grid-template-rows: repeat(var(--dimensions), var(--grid_size));
+    gap: 0 0;
+}
+
+.wrapper_grid {
+    width: 100%;
+}
+
+.grid > div {
+    position: relative;
+}
+
+.empty_cell {
+    background: black;
+    cursor: default;
+}
+
+.non_empty_cell {
+    background: var(--sub_colour);
+    text-transform: uppercase;
+    font-size: var(--cell_font_size);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    border: 0.1px solid black;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+.num_label {
+    /* Labels the start of a word */
+    position: absolute;
+    top: 1%;
+    left: 5%;
+    -webkit-user-select: none;
+    user-select: none;
+    color: var(--text_colour);
+    font-size: var(--num_label_font_size);
+}
+
+.compound_input {
+    /* Allows users with alphabet systems such as Hangul to combine characters
+    before inserting them into a cell. */
+    background-color: var(--text_colour);
+    border: none;
+    width: 100%;
+    height: 100%;
+    color: var(--sub_colour);
+    text-align: center;
+    box-sizing: border-box;
+    font-size: 0.75em;
+    outline: none;
+}
+
+.compound_input::placeholder {
+    text-align: center;
+}
+/* ---------- */
+
+/* ----- Styling for the definitions container and its two rows 
+(the definitions) ----- */
+.right_side {
+    width: 90vmin;
+    overflow: auto;
+}
+
+.definitions {
+    display: flex;
+    background-color: var(--sub_colour);
+    justify-content: space-evenly;
+    margin-top: 21vmin;
+    right: 0;
+    overflow: hidden;
+    max-height: 72vmin;
+    width: 95vmin;
+    z-index: 998;
+    max-width: 100%;
+}
+
+#return_def_zoom {
+    padding: 3% 0 3%;
+}
+
+.wrapper_def {
+    display: flex;
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#return_def_zoom {
+    overflow: hidden;
+}
+
+#no_scroll {
+    overflow-y: hidden;
+}
+
+.wrapper_def ul {
+    /* Remove bullet points from the unordered list */
+    list-style-type: none;
+}
+
+.wrapper_def li {
+    /* Each definition/clue */
+    margin-bottom: 10px;
+    white-space: pre-wrap; /* Helps html recognise more whitespace for the 
+                           definitions list */
+    padding: 6%;
+    cursor: pointer;
+    /* Prevent the user from missing their click by clicking in the small area
+    between definitions list items. */
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.def_heading {
+    text-align: center;
+}
+
+/* Make both columns resize to fill the container. Flex is used to make this 
+resizing equally distributed. */
+.definitions_a,
+.definitions_d {
+    flex-grow: 1;
+    flex: 1;
+}
+
+.definitions_a {
+    border-right: 0.1px solid var(--text_colour);
+}
+/* ---------- */
+
+/* ----- Styling for the popups ----- */
+#blur.active > :not(.popup) {
+    /* Blur everything but the popup */
+    filter: blur(20px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.popup {
+    position: fixed;
+    text-align: center;
+    background: var(--sub_colour);
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%, calc(20% - calc(20% * var(--scaling))));
+    transform: 0.5s;
+    width: 50vmin;
+    padding: 50px;
+    box-shadow: 0 5px 30px var(--main_colour);
+    visibility: hidden;
+    opacity: 0;
+    z-index: 999999;
+}
+
+.popup.active {
+    top: 25%;
+    visibility: visible;
+    opacity: 1;
+    transition: 0.5s;
+}
+/* ---------- */
+
+/* ----- Styling of the dropdowns, their buttons and other related elements ----- */
+.dropdown {
+    position: absolute;
+    display: none;
+    top: 100%;
+    left: 0;
+    width: 25vmin;
+    background-color: var(--sub_colour);
+    box-shadow: 6px 6px 10px 1px var(--main_colour);
+    padding: 0;
+}
+
+.dropdown button {
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0px;
+    display: block;
+    padding: 10px;
+    width: 100%;
+    min-width: -moz-fit-content;
+    min-width: fit-content;
+    white-space: nowrap;
+    border: none;
+    background: var(--sub_colour);
+    color: var(--text_colour);
+    border-bottom: 1px solid var(--main_colour);
+}
+
+.definitions > .top_buttons_container {
+    display: flex;
+    position: absolute;
+    transform: translateY(-8.25vmin);
+    justify-content: center;
+    z-index: 999;
+}
+
+.dropdown button:last-child {
+    border-bottom: none;
+}
+
+.dropdown button:hover {
+    background-color: var(--main_colour);
+}
+
+.show_dropdown {
+    display: block;
+}
+
+#reveal_button,
+#check_button {
+    margin-right: 4.5vmin;
+    white-space: nowrap;
+}
+
+#clear_button {
+    white-space: nowrap;
+}
+
+#check_dropdown {
+    left: 35%;
+}
+
+#clear_dropdown {
+    left: 70.2%;
+}
+
+.top_buttons_container .special_button {
+    min-width: 25vmin;
+}
+/* ---------- */
+
+/* ----- Styling the compound button ----- */
+.compound {
+    position: absolute;
+    display: flex;
+    top: 1.355vmin;
+}
+
+#compound_button {
+    justify-content: center;
+    min-width: 20vmin;
+    white-space: nowrap;
+    overflow: auto;
+}
+/* ---------- */
+
+/* ----- Styling of the smart skip toggle button. The majority of these styles 
+are from https://codepen.io/morgoe/pen/VvzWQg ----- */
+.toggle > * {
+    user-select: none;
+}
+
+.toggles {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    top: 8.225vmin;
+}
+
+.toggle:last-child {
+    margin-right: 0;
+}
+
+.toggle {
+    display: flex;
+    cursor: pointer;
+    margin-right: 1em;
+    white-space: nowrap;
+}
+
+.toggle_switch {
+    display: inline-block;
+    background: var(--text_colour);
+    border-radius: 16px;
+    width: 58px;
+    height: 32px;
+    position: relative;
+    vertical-align: middle;
+    transition: right 0.25s;
+}
+
+.toggle_switch::before,
+.toggle_switch::after {
+    content: "";
+}
+
+.toggle_switch::before {
+    background: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: left 0.25s;
+}
+
+.toggle_checkbox:checked + .toggle_switch {
+    background: var(--button_colour);
+}
+
+.toggle_checkbox:checked + .toggle_switch::before {
+    left: 30px;
+}
+
+.toggle_checkbox {
+    position: absolute;
+    visibility: hidden;
+}
+
+.toggle_label {
+    margin-left: calc(5px * var(--scaling));
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+/* ---------- */
