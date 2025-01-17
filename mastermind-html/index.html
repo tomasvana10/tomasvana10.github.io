@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mastermind-html</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/kbd.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js "></script>
+  </head>
+  <body>
+    <script src="js/index.js"></script>
+    <div id="content">
+      <div id="header">
+        <div class="header-content">
+          <div class="header-start"></div>
+          <div class="header-center">
+            <div class="title">
+              <span>
+                <a
+                  tabindex="0"
+                  href="https://en.wikipedia.org/wiki/Mastermind_(board_game)"
+                  target="_blank"
+                  >mastermind</a
+                >-html
+              </span>
+            </div>
+            <div class="subtitle">
+              A game to sharpen your critical thinking skills
+            </div>
+          </div>
+          <div class="header-end">
+            <button id="github-clickable" aria-label="button">
+              <svg
+                aria-label="github logo"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="40"
+                height="40"
+                viewBox="0 0 30 30">
+                <path
+                  d="M15,3C8.373,3,3,8.373,3,15c0,5.623,3.872,10.328,9.092,11.63C12.036,26.468,12,26.28,12,26.047v-2.051 c-0.487,0-1.303,0-1.508,0c-0.821,0-1.551-0.353-1.905-1.009c-0.393-0.729-0.461-1.844-1.435-2.526 c-0.289-0.227-0.069-0.486,0.264-0.451c0.615,0.174,1.125,0.596,1.605,1.222c0.478,0.627,0.703,0.769,1.596,0.769 c0.433,0,1.081-0.025,1.691-0.121c0.328-0.833,0.895-1.6,1.588-1.962c-3.996-0.411-5.903-2.399-5.903-5.098 c0-1.162,0.495-2.286,1.336-3.233C9.053,10.647,8.706,8.73,9.435,8c1.798,0,2.885,1.166,3.146,1.481C13.477,9.174,14.461,9,15.495,9 c1.036,0,2.024,0.174,2.922,0.483C18.675,9.17,19.763,8,21.565,8c0.732,0.731,0.381,2.656,0.102,3.594 c0.836,0.945,1.328,2.066,1.328,3.226c0,2.697-1.904,4.684-5.894,5.097C18.199,20.49,19,22.1,19,23.313v2.734 c0,0.104-0.023,0.179-0.035,0.268C23.641,24.676,27,20.236,27,15C27,8.373,21.627,3,15,3z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="game">
+        <div id="board">
+          <div id="game-slices">
+            <div class="game-slice">
+              <div class="code-peg-holders">
+                <div class="code-peg-holder" data-index="0"></div>
+                <div class="code-peg-connector"></div>
+                <div class="code-peg-holder" data-index="1"></div>
+                <div class="code-peg-connector"></div>
+                <div class="code-peg-holder" data-index="2"></div>
+                <div class="code-peg-connector"></div>
+                <div class="code-peg-holder" data-index="3"></div>
+              </div>
+              <div class="key-peg-holders">
+                <div class="key-peg-holder" data-index="0"></div>
+                <div class="key-peg-holder" data-index="1"></div>
+                <div class="key-peg-holder" data-index="2"></div>
+                <div class="key-peg-holder" data-index="3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="user-interaction-container">
+          <div id="code-peg-picker">
+            <label class="bold-subtitle">Code Peg Picker</label>
+            <div class="picker"></div>
+            <!--prettier-ignore-->
+            <button class="btn btn-error" id="deleteCodePegButton">Delete</button>
+          </div>
+          <div id="other-options">
+            <label class="bold-subtitle">Other Options</label>
+            <button class="btn btn-success" id="submitGuessButton">
+              Guess
+            </button>
+            <button class="btn" id="newGameButton">New Game</button>
+          </div>
+        </div>
+      </div>
+      <dialog id="winDialog" aria-label="mastermind-html win dialog">
+        <h1>Congratulations!</h1>
+        <p>Great job! You broke the code!</p>
+        <button
+          onclick="document.getElementById('winDialog').close(); modalOpen=false;">
+          Close
+        </button>
+      </dialog>
+      <dialog id="failureDialog" aria-label="mastermind-html failure dialog">
+        <h1>Game Over</h1>
+        <p>
+          Unfortunately, you couldn't break the code within the required amount
+          of attempts. Better luck next time!
+        </p>
+        <p>The code was:</p>
+        <button
+          onclick="document.getElementById('failureDialog').close(); modalOpen=false;">
+          Close
+        </button>
+      </dialog>
+      <dialog id="keybindsDialog" aria-label="keybinds for mastermind-html">
+        <h1>Keybinds & Accessibility</h1>
+        <p>Several keybinds have been implemented for ease of access.</p>
+        <ul>
+          <li>Submit Guess: <kbd>ENTER</kbd></li>
+          <li>Place Peg: <kbd>1</kbd>, <kbd>2</kbd>, ...</li>
+          <li>Delete Peg: <kbd>BACKSPACE</kbd></li>
+          <li>New Game: <kbd>SHIFT</kbd> + <kbd>ENTER</kbd></li>
+        </ul>
+        <p>
+          To further improve accessibility, all clickable elements are focusable
+          with the <kbd>TAB</kbd> key. The functions of these elements can be
+          invoked by pressing <kbd>ENTER</kbd>.
+        </p>
+        <button
+          onclick="document.getElementById('keybindsDialog').close(); modalOpen=false;">
+          Close
+        </button>
+      </dialog>
+      <dialog id="howToPlayDialog" aria-label="how to play mastermind-html">
+        <h1>How To Play</h1>
+        <u>Game Rules:</u>
+        <ul>
+          <li>The user plays as the <strong>codebreaker</strong>, and must determine a code that is randomly assembled by the <strong>codemaker</strong> - an algorithm.</li>
+          <li><strong>NOTE: </strong>Once this page is loaded, a random code is generated, and the game begins — you do not need to press the "New Game" button initially.</li>
+          <li>A player has a fixed amount of guesses of the code before they fail. The amount of guesses defaults to 10.</li>
+          <li>A player's guess consists of coloured <strong>code pegs</strong>, which much occupy all the available guess slots. The amount of guess slots defaults to 4 (and thus, the codemaker's code also consists of 4 slots).</li>
+          <li>Once the player makes their guess, the algorithm will respond by placing <strong>key pegs</strong>, which are placed by comparing the player's guess with the codemaker's code using the following guidelines:</li>
+          <ul>
+            <li>One <strong>black key peg</strong> for each code peg that is the correct colour and in the correct position.</li>
+            <li>One <strong>gray key peg</strong> for each code peg that is the correct colour but in the wrong position.</li>
+            <li><strong>NOTE: </strong>In an example scenario where the codemaker's code contains one red peg, and the user's code contains two red pegs, only one black key peg is placed.</li>
+            <li><strong>NOTE: </strong>Key pegs are not placed in any particular order.</li>
+          </ul>
+        </ul>
+        <u>To Play:</u>
+        <ol>
+          <li>Click on the code pegs under "Code Peg Picker" to arrange your code. You can use the "Delete" button to remove code pegs if you wish.</li>
+          <li>Press the "Guess" button to submit your code. The algorithm will provide you with feedback using key pegs.</li>
+          <li>To start a new game at any time, press the "New Game" button.</li>
+        </ol>
+        <button
+          onclick="document.getElementById('howToPlayDialog').close(); modalOpen=false;">
+          Close
+        </button>
+      </dialog>
+      <footer>
+        <div class="revealUnder768 footer-transferred-content">
+          <div>
+            <div class="title">
+              <span>
+                <a
+                  href="https://en.wikipedia.org/wiki/Mastermind_(board_game)"
+                  target="_blank"
+                  >mastermind</a
+                >-html
+              </span>
+            </div>
+            <p class="subtitle">
+              A game to sharpen your critical thinking skills
+            </p>
+          </div>
+          <hr />
+        </div>
+        <p class="header">Information</p>
+        <div>
+          <button id="howToPlayButton" class="btn">How to Play</button>
+          <button id="keybindsButton" class="btn revealAbove768">
+            Keybinds & Accessibility
+          </button>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
