@@ -1,44 +1,134 @@
-const GUESSES = 10; // acts as a constraint + affects html
-const GUESS_SLOTS = 4; // acts as a constraint (does not affect html)
-const MY_GITHUB = "https://github.com/tomasvana10";
-const ROW_TO_COL_MEDIA_BREAKPOINT = 768;
-/**
- * @typedef {"red" | "yellow" | "blue" | "green" | "black" | "azure"} CodePegColour
- */
-const CODE_PEG_COLOURS = ["red", "yellow", "blue", "green", "black", "azure"];
-/**
- * @typedef {"black" | "ghostwhite"} KeyPegColour
- */
-const KEY_PEG_COLOURS = ["black", "white"];
+import {
+  GUESSES,
+  CODE_PEG_COLOURS,
+  GUESS_SLOTS,
+  MAJOR_MEDIA_BREAKPOINT,
+  MY_GITHUB,
+  MODALS,
+  MUS_DEFAULTS,
+  DISABLE_MANUAL_AFTER_INPUT,
+} from "./constants.js";
+import { shadeColour, randomChoice, hasOverflow, Cookies } from "./utils.js";
 
-let winDialog, failureDialog, keybindsDialog, howToPlayDialog;
+let winDialog, failureDialog, keybindsDialog, howToPlayDialog, settingsDialog;
 
 // game-related variables
-let codebreakerCode = []; // >= 0, <= GUESS_SLOTS
 let activeGameSliceIndex = 0; // >= 0, <= GUESSES - 1
 let postGameConclusion = false;
+let manualColourInputSelection = "";
 
 let modalOpen = false;
 let codemakerCode = [];
 let temporaryFeedbackRunningTasks = new Map();
 
+class CodebreakerCode extends Array {
+  #EMPTY = "__EMPTY__";
+
+  constructor(maxLength, ...args) {
+    super(...args);
+    this.length = maxLength;
+    this.fill(this.#EMPTY);
+  }
+
+  get trueLength() {
+    return this.filter(val => val !== this.#EMPTY).length;
+  }
+
+  set(index, val) {
+    if (index > this.length - 1) {
+      throw new Error(`Index must be less than or equal to ${this.length - 1}`);
+    }
+    this[index] = val;
+    console.log(this);
+    this.#setInDom(index, val);
+  }
+
+  #setInDom(index, val) {
+    const codePegHolders = getActiveGameSlicePegHolders();
+    const holder = [...codePegHolders.children].filter(el =>
+      el.classList.contains("code-peg-holder"),
+    )[index];
+    if (holder.firstChild) holder.removeChild(holder.firstChild);
+    holder.appendChild(createCodePeg(val));
+  }
+
+  reset() {
+    this.fill(this.#EMPTY);
+  }
+
+  push(val) {
+    const index = this.findIndex(item => item === this.#EMPTY);
+
+    if (index !== -1) {
+      this[index] = val;
+      this.#pushToDOM(val);
+    }
+    console.log(this);
+    return this.length;
+  }
+
+  #pushToDOM(val) {
+    const codePegHolders = getActiveGameSlicePegHolders();
+    for (const el of codePegHolders.children) {
+      if (
+        !el.classList.contains("code-peg-connector") &&
+        !el.querySelector(".code-peg")
+      ) {
+        el.appendChild(createCodePeg(val));
+        break;
+      }
+    }
+  }
+
+  pop() {
+    const index = this.findLastIndex(item => item !== this.#EMPTY);
+    if (index !== -1) {
+      const value = this[index];
+      this[index] = this.#EMPTY;
+      this.#popFromDom();
+      console.log(this);
+      return value;
+    }
+    return undefined;
+  }
+
+  #popFromDom() {
+    const codePegHolders = getActiveGameSlicePegHolders();
+    for (const el of [...codePegHolders.children].reverse()) {
+      if (el.querySelector(".code-peg")) {
+        el.removeChild(el.firstChild);
+        break;
+      }
+    }
+  }
+}
+
+let codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
+
 window.onresize = () => updateGameSlicesBasedOnOverflow();
 
 window.onload = () => {
-  setRows();
+  setGameSlices();
+  if (GUESS_SLOTS > 1) {
+    setCodePegHolders();
+    setKeyPegHolders();
+  }
   makeGithubLinksClickable();
   updateGameSlicesBasedOnOverflow();
   createCodePickerPegs();
   applyButtonListeners();
-  winDialog = document.getElementById("winDialog");
-  failureDialog = document.getElementById("failureDialog");
-  keybindsDialog = document.getElementById("keybindsDialog");
-  howToPlayDialog = document.getElementById("howToPlayDialog");
+  applyModalCloseButtonListeners();
+  applyFormSubmitListeners();
+  applyCSSStyles();
+  assignDialogVariables();
+  setDefaultFormValues();
+  document.getElementById("manualInputCheckbox").checked = false;
 
-  newGame();
+  newGame(true);
 };
 
 document.onkeydown = event => {
+  if (event.key === "Escape") return document.activeElement.blur();
   if (modalOpen || postGameConclusion) return;
   if (event.key === "Backspace") {
     deleteCodePeg();
@@ -60,43 +150,150 @@ document.onkeydown = event => {
   }
 };
 
-/* TEST FUNCTIONS */
-function test_generatePegs() {
-  const el = document.getElementById("guess-interface");
-  for (colour of CODE_PEG_COLOURS) {
-    el.appendChild(createCodePeg(colour));
-  }
-  for (colour of KEY_PEG_COLOURS) {
-    el.appendChild(createKeyPeg(colour));
-  }
-  document
-    .querySelectorAll(".code-peg-holder")
-    .forEach(holder =>
-      holder.appendChild(createCodePeg(randomChoice(CODE_PEG_COLOURS)))
-    );
-  document
-    .querySelectorAll(".key-peg-holder")
-    .forEach(holder =>
-      holder.appendChild(createKeyPeg(randomChoice(KEY_PEG_COLOURS)))
-    );
-}
-
 /* DOM-RELATED FUNCTIONS */
 function applyButtonListeners() {
-  document.getElementById("deleteCodePegButton").onclick = deleteCodePeg;
+  document.getElementById("deleteCodePegButton1").onclick = deleteCodePeg;
+  document.getElementById("deleteCodePegButton2").onclick = deleteCodePeg;
   document.getElementById("submitGuessButton").onclick = submitGuess;
-  document.getElementById("newGameButton").onclick = newGame;
-  document.getElementById("keybindsButton").onclick = () =>
+  document.getElementById("newGameButton").onclick = () => newGame();
+  document.getElementById("keybindsButton").onclick = () => {
     keybindsDialog.showModal();
-  document.getElementById("howToPlayButton").onclick = () =>
+    modalOpen = true;
+  };
+  document.getElementById("howToPlayButton").onclick = () => {
     howToPlayDialog.showModal();
+    modalOpen = true;
+  };
+  document.getElementById("settingsButton").onclick = () => {
+    settingsDialog.showModal();
+    document.getElementById("guessesInput").blur();
+    modalOpen = true;
+  };
+  document.getElementById("resetUserSettingsButton").onclick = () => {
+    resetUserSettings();
+    window.location.reload();
+  };
+  document.getElementById("manualInputCheckbox").onchange = event => {
+    if (!event.target.checked) updateManualColourInputSelection("");
+  };
+}
+
+function applyModalCloseButtonListeners() {
+  MODALS.forEach(
+    id =>
+      (document.getElementById(id).querySelector(".modalCloseButton").onclick =
+        () => {
+          document.getElementById(id).close();
+          modalOpen = false;
+        }),
+  );
+}
+
+function applyFormSubmitListeners() {
+  document.getElementById("settingsFormButton").onclick = event => {
+    event.preventDefault();
+    window.location.reload();
+    submitSettingsForm();
+  };
+}
+
+function resetUserSettings() {
+  Cookies.setCookie("MUS_guesses", MUS_DEFAULTS.guesses);
+  Cookies.setCookie("MUS_guess_slots", MUS_DEFAULTS.guessSlots);
+  Cookies.setCookie("MUS_code_peg_colours", MUS_DEFAULTS.codePegColours);
+  Cookies.setCookie(
+    "MUS_disable_manual_after_input",
+    MUS_DEFAULTS.disableManualAfterInput,
+  );
+}
+
+function openConfirmationDialog(
+  onConfirm,
+  buttonText = ["No", "Yes"],
+  buttonColourScheme = ["btn-error", "btn-success"],
+  appendToMessage = "",
+  title = "Confirmation",
+  message = "Are you sure you want to proceed with this action?",
+) {
+  const dialog = document.getElementById("confirmationDialog");
+  const modalTitle = document.getElementById("CdialogTitle");
+  const modalMessage = document.getElementById("CdialogMessage");
+  const cancelButton = document.getElementById("CdialogCancelButton");
+  const confirmButton = document.getElementById("CdialogConfirmButton");
+
+  dialog.showModal();
+  modalTitle.textContent = title;
+  modalMessage.textContent = message + " " + appendToMessage;
+  cancelButton.textContent = buttonText[0];
+  confirmButton.textContent = buttonText[1];
+  cancelButton.className = `btn ${buttonColourScheme[0]}`;
+  confirmButton.className = `btn ${buttonColourScheme[1]}`;
+
+  confirmButton.onclick = () => {
+    dialog.close();
+    onConfirm();
+  };
+
+  cancelButton.onclick = () => {
+    dialog.close();
+  };
+}
+
+function applyCSSStyles() {
+  if ((window.innerWidth < 427 || !isOnPhone()) && GUESS_SLOTS > 4) {
+    const scale = window.innerWidth < 427 ? "0.4" : "0.8";
+    document
+      .querySelectorAll(".game-slice")
+      .forEach(slice => (slice.style.scale = scale));
+  }
+  if (GUESS_SLOTS > 4 && isOnPhone()) {
+    document
+      .querySelectorAll(".key-peg-holders")
+      .forEach(holder => (holder.style.gridTemplateColumns = "repeat(3, 1fr)"));
+  }
+}
+
+function assignDialogVariables() {
+  winDialog = document.getElementById(MODALS[0]);
+  failureDialog = document.getElementById(MODALS[1]);
+  keybindsDialog = document.getElementById(MODALS[2]);
+  howToPlayDialog = document.getElementById(MODALS[3]);
+  settingsDialog = document.getElementById(MODALS[4]);
+}
+
+function setDefaultFormValues() {
+  document.getElementById("guessesInput").value = GUESSES;
+  document.getElementById("guessSlotsInput").value = GUESS_SLOTS;
+  document.getElementById("codePegColoursInput").value =
+    CODE_PEG_COLOURS.length;
+  document.getElementById("disableManualAfterInput").checked =
+    DISABLE_MANUAL_AFTER_INPUT;
+}
+
+function submitSettingsForm() {
+  Cookies.setCookie(
+    "MUS_guesses",
+    document.getElementById("guessesInput").value,
+  );
+  Cookies.setCookie(
+    "MUS_guess_slots",
+    document.getElementById("guessSlotsInput").value,
+  );
+  Cookies.setCookie(
+    "MUS_code_peg_colours",
+    document.getElementById("codePegColoursInput").value,
+  );
+  Cookies.setCookie(
+    "MUS_disable_manual_after_input",
+    Number(document.getElementById("disableManualAfterInput").checked),
+  );
 }
 
 function createCodePickerPegs() {
   const picker = document.querySelector("#code-peg-picker .picker");
   for (const colour of CODE_PEG_COLOURS)
     picker.appendChild(
-      createCodePeg(colour, true, () => addCodePeg(colour), true)
+      createCodePeg(colour, true, event => addCodePeg(colour, event), true),
     );
 }
 
@@ -105,26 +302,61 @@ function makeGithubLinksClickable() {
     .querySelectorAll("#github-clickable, #githubButton")
     .forEach(node =>
       node.addEventListener("click", () =>
-        window.open(MY_GITHUB, "_blank").focus()
-      )
+        window.open(MY_GITHUB, "_blank").focus(),
+      ),
     );
 }
 
-function setRows() {
-  const rows = document.getElementById("game-slices");
-  const firstRow = rows.children[0];
-  firstRow.id = "game-slice-0";
+function setGameSlices() {
+  const slices = document.getElementById("game-slices");
+  const firstSlice = slices.children[0];
+  firstSlice.id = "game-slice-0";
 
   for (let i = 1; i < GUESSES; i++) {
-    const newRow = firstRow.cloneNode(true);
-    newRow.id = `game-slice-${i}`;
-    rows.appendChild(newRow);
+    const newSlice = firstSlice.cloneNode(true);
+    newSlice.id = `game-slice-${i}`;
+    slices.appendChild(newSlice);
   }
+}
+
+function setCodePegHolders() {
+  document.querySelectorAll(".game-slice").forEach((slice, index) => {
+    const holders = slice.querySelector(".code-peg-holders");
+    for (let i = 0; i <= GUESS_SLOTS - 1; i++) {
+      const connector = document.createElement("div");
+      connector.className = "code-peg-connector";
+      const holder = document.createElement("div");
+      holder.dataset.index = `${i}`;
+      holder.className = "code-peg-holder";
+      holder.onclick = () => {
+        if (manualColourInputSelection && activeGameSliceIndex === index) {
+          codebreakerCode.set(i, manualColourInputSelection);
+          if (DISABLE_MANUAL_AFTER_INPUT) {
+            updateManualColourInputSelection("");
+          }
+        }
+      };
+      if (i > 0) holders.appendChild(connector);
+      holders.appendChild(holder);
+    }
+  });
+}
+
+function setKeyPegHolders() {
+  document.querySelectorAll(".game-slice").forEach(slice => {
+    const holders = slice.querySelector(".key-peg-holders");
+    for (let i = 0; i <= GUESS_SLOTS - 1; i++) {
+      const holder = document.createElement("div");
+      holder.dataset.index = `${i}`;
+      holder.className = "key-peg-holder";
+      holders.appendChild(holder);
+    }
+  });
 }
 
 function updateGameSlicesBasedOnOverflow() {
   const slices = document.getElementById("game-slices");
-  if (hasOverflow(slices)) {
+  if (hasOverflow(slices, true)) {
     slices.style.justifyContent = "start";
     slices.style.paddingLeft = "10px";
     bindScrollToGameSlices();
@@ -147,7 +379,7 @@ function bindScrollToGameSlices() {
       return; // allow event to pass, as scrolling has no effect (end of container reached)
     }
     event.preventDefault();
-    if (window.innerWidth > ROW_TO_COL_MEDIA_BREAKPOINT) {
+    if (window.innerWidth > MAJOR_MEDIA_BREAKPOINT) {
       slices.scrollLeft += event.deltaY;
     } else {
       slices.scrollTop += event.deltaY;
@@ -160,27 +392,45 @@ function unbindScrollFromGameSlices() {
   slices.onwheel = () => {};
 }
 
+function isOnPhone() {
+  return window.innerWidth < MAJOR_MEDIA_BREAKPOINT;
+}
+
+function updateManualColourInputSelection(colour) {
+  document
+    .querySelectorAll(".game-slice")
+    .forEach(el => el.classList.remove("manual"));
+  if (colour) getActiveGameSlice().classList.add("manual");
+  document.querySelectorAll(".picker .code-peg").forEach(el => {
+    if (el.dataset.colour !== colour) return el.classList.remove("manual");
+    el.classList.add("manual");
+  });
+  if (!colour) document.getElementById("manualInputCheckbox").checked = false;
+  manualColourInputSelection = colour;
+}
+
 /**
- * @param {CodePegColour} colour
+ * @param {import("./constants.js").CodePegColour} colour
  */
 function createCodePeg(
   colour,
   cursorPointer = false,
   onClick = null,
-  tabIndex = false
+  tabIndex = false,
 ) {
   const peg = document.createElement("div");
   peg.classList.add("code-peg");
+  peg.dataset.colour = colour;
   peg.style.background = `radial-gradient(circle at 57.5% 40%, ${colour}, ${shadeColour(
     colour,
-    -30
+    -30,
   )} 70%, ${shadeColour(colour, -50)})`;
   peg.style.boxShadow = `
-    -7px 7px 15px 2px rgba(0, 0, 0, 0.6),
+    -3px 3px 10px 2px rgba(0, 0, 0, 0.6),
     2px -2px 8px rgba(255, 255, 255, 0.5) inset
   `;
   if (cursorPointer) peg.style.cursor = "pointer";
-  if (onClick) peg.onclick = onClick;
+  if (onClick) peg.onclick = event => onClick(event);
   if (tabIndex) {
     peg.tabIndex = "0";
     peg.role = "button";
@@ -190,14 +440,14 @@ function createCodePeg(
 }
 
 /**
- * @param {KeyPegColour} colour
+ * @param {import("./constants.js").KeyPegColour} colour
  */
 function createKeyPeg(colour) {
   const peg = document.createElement("div");
   peg.classList.add("key-peg");
   peg.style.background = `radial-gradient(circle at 60% 30%, ${colour}, ${shadeColour(
     colour,
-    -40
+    -40,
   )} 150%, ${shadeColour(colour, -50)})`;
   peg.style.boxShadow = `
     -3px 3px 9px 2px rgba(0, 0, 0, 0.6),
@@ -229,11 +479,12 @@ function getActiveGameSliceKeyHolders() {
 }
 
 function scrollActiveGameSliceIntoView() {
-  if (hasOverflow(document.getElementById("game-slices")))
+  const onPhone = isOnPhone();
+  if (hasOverflow(document.getElementById("game-slices", !onPhone, onPhone)))
     getActiveGameSlice().scrollIntoView({
       behavior: "smooth",
       block: "nearest",
-      inline: "start",
+      inline: "nearest",
     });
 }
 
@@ -252,34 +503,27 @@ function setTemporaryFeedbackText(selector, text, timeout = 750) {
 /* GAME-RELATED FUNCTIONS */
 /**
  *
- * @param {CodePegColour} colour
+ * @param {import("./constants.js").CodePegColour} colour
+ * @param {KeyboardEvent} event
  */
-function addCodePeg(colour) {
+function addCodePeg(colour, event = undefined) {
   if (postGameConclusion) return;
-  const codePegHolders = getActiveGameSlicePegHolders();
-  for (const node of codePegHolders.children) {
-    if (
-      !node.classList.contains("code-peg-connector") &&
-      !node.querySelector(".code-peg")
-    ) {
-      node.appendChild(createCodePeg(colour));
-      codebreakerCode.push(colour);
-      break;
-    }
+  if (
+    event?.shiftKey ||
+    document.getElementById("manualInputCheckbox").checked
+  ) {
+    if (event.target.dataset.colour === manualColourInputSelection)
+      return updateManualColourInputSelection("");
+    return updateManualColourInputSelection(colour);
   }
+  updateManualColourInputSelection("");
+  codebreakerCode.push(colour);
   scrollActiveGameSliceIntoView();
 }
 
 function deleteCodePeg() {
   if (postGameConclusion) return;
-  const codePegHolders = getActiveGameSlicePegHolders();
-  for (const node of [...codePegHolders.children].reverse()) {
-    if (node.querySelector(".code-peg")) {
-      node.removeChild(node.firstChild);
-      codebreakerCode.pop();
-      break;
-    }
-  }
+  codebreakerCode.pop();
   scrollActiveGameSliceIntoView();
 }
 
@@ -289,7 +533,7 @@ function wipeAllBoardPegs() {
     .forEach(node => node.remove());
 }
 
-function setKeyPegs(evaluationMap) {
+function applyKeyPegs(evaluationMap) {
   const keyPegHolders = getActiveGameSliceKeyHolders();
   let keyPegCount =
     evaluationMap.correctPositionAndColour + evaluationMap.correctColourOnly;
@@ -302,7 +546,7 @@ function setKeyPegs(evaluationMap) {
       pickingFrom === "correctPositionAndColour" ? "black" : "ghostwhite";
 
     const firstAvailable = [...keyPegHolders.children].find(
-      node => !node.children.length
+      node => !node.children.length,
     );
     firstAvailable.appendChild(createKeyPeg(keyPegColour));
     evaluationMap[pickingFrom]--;
@@ -316,22 +560,31 @@ function makeCode() {
   }
 }
 
-function newGame() {
-  let slice = getActiveGameSlice();
-  if (!slice) {
-    activeGameSliceIndex--;
-    slice = getActiveGameSlice();
+function newGame(onload = false, force = false) {
+  if (!postGameConclusion && !onload && !force) {
+    return openConfirmationDialog(
+      () => newGame(false, true),
+      ["Keep Playing", "New Game"],
+      ["", "btn-success"],
+      "You have not finished your current game.",
+    );
   }
-  slice.classList.remove("active");
+
+  document
+    .querySelectorAll(".game-slice")
+    .forEach(slice => slice.classList.remove("active"));
   activeGameSliceIndex = 0;
   postGameConclusion = false;
+  codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
+  updateManualColourInputSelection("");
   setTemporaryFeedbackText("#newGameButton", "Started!");
   wipeAllBoardPegs();
   makeCode();
   getActiveGameSlice().classList.add("active");
+  scrollActiveGameSliceIntoView();
 }
 
-function evaluateGuess() {
+function evaluateGuess(codemakerCode, codebreakerCode) {
   let correctPositionAndColour = 0;
   let correctColourOnly = 0;
   const codemakerColours = [...codemakerCode];
@@ -363,13 +616,14 @@ function evaluateGuess() {
 
 function submitGuess() {
   if (postGameConclusion) return;
-  if (codebreakerCode.length < GUESS_SLOTS)
+  if (codebreakerCode.trueLength < GUESS_SLOTS)
     return alert(
-      `Error: Your guess must be equivalent to the amount of guess slots (${GUESS_SLOTS}).`
+      `Error: Your guess must be equivalent to the amount of guess slots (${GUESS_SLOTS}).`,
     );
-  const evaluation = evaluateGuess();
-  setKeyPegs(JSON.parse(JSON.stringify(evaluation)));
-  codebreakerCode = [];
+  const evaluation = evaluateGuess(codemakerCode, codebreakerCode);
+  applyKeyPegs(JSON.parse(JSON.stringify(evaluation)));
+  codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
+  updateManualColourInputSelection("");
   const oldActiveGameSlice = getActiveGameSlice();
   activeGameSliceIndex++;
   if (evaluation.correctPositionAndColour === GUESS_SLOTS) {
@@ -385,7 +639,7 @@ function submitGuess() {
     modalOpen = true;
     failureDialog.insertBefore(
       createCodebreakerPegSequenceElement(),
-      failureDialog.lastElementChild
+      failureDialog.lastElementChild,
     );
     postGameConclusion = true;
   } else {
@@ -396,27 +650,4 @@ function submitGuess() {
   }
 }
 
-/* UTILITY FUNCTIONS */
-function shadeColour(color, percent) {
-  const num = parseInt(color.replace("#", ""), 16),
-    amt = Math.round(2.55 * percent),
-    R = (num >> 16) + amt,
-    G = ((num >> 8) & 0x00ff) + amt,
-    B = (num & 0x0000ff) + amt;
-
-  return `rgb(${Math.min(255, Math.max(0, R))}, ${Math.min(
-    255,
-    Math.max(0, G)
-  )}, ${Math.min(255, Math.max(0, B))})`;
-}
-
-function randomChoice(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function hasOverflow(container) {
-  return (
-    container.scrollHeight > container.clientHeight ||
-    container.scrollWidth > container.clientWidth
-  );
-}
+export { evaluateGuess };

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="css/index.css" />
     <link rel="stylesheet" href="css/normalize.css" />
     <link rel="stylesheet" href="css/kbd.css" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.png" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js "></script>
   </head>
   <body>
-    <script src="js/index.js"></script>
+    <script type="module" src="js/index.js"></script>
     <div id="content">
       <div id="header">
         <div class="header-content">
@@ -51,47 +52,42 @@
         <div id="board">
           <div id="game-slices">
             <div class="game-slice">
-              <div class="code-peg-holders">
-                <div class="code-peg-holder" data-index="0"></div>
-                <div class="code-peg-connector"></div>
-                <div class="code-peg-holder" data-index="1"></div>
-                <div class="code-peg-connector"></div>
-                <div class="code-peg-holder" data-index="2"></div>
-                <div class="code-peg-connector"></div>
-                <div class="code-peg-holder" data-index="3"></div>
-              </div>
-              <div class="key-peg-holders">
-                <div class="key-peg-holder" data-index="0"></div>
-                <div class="key-peg-holder" data-index="1"></div>
-                <div class="key-peg-holder" data-index="2"></div>
-                <div class="key-peg-holder" data-index="3"></div>
-              </div>
+              <div class="code-peg-holders"> </div>
+              <div class="key-peg-holders"> </div>
             </div>
           </div>
         </div>
         <div id="user-interaction-container">
           <div id="code-peg-picker">
-            <label class="bold-subtitle">Code Peg Picker</label>
+            <label class="bold-subtitle">
+              <span>Code Peg Picker</span>
+              <span>
+                <input type="checkbox" id="manualInputCheckbox" />
+                <i data-lucide="wrench"></i>
+              </span>
+            </label>
             <div class="picker"></div>
             <!--prettier-ignore-->
-            <button class="btn btn-error" id="deleteCodePegButton">Delete</button>
+            <button class="btn btn-error revealAbove768" id="deleteCodePegButton1">Delete</button>
           </div>
           <div id="other-options">
-            <label class="bold-subtitle">Other Options</label>
+            <label class="bold-subtitle">Actions</label>
+            <button class="btn" id="newGameButton">New Game</button>
+            <button
+              class="btn btn-error revealUnder768"
+              id="deleteCodePegButton2"
+              >Delete</button
+            >
             <button class="btn btn-success" id="submitGuessButton">
               Guess
             </button>
-            <button class="btn" id="newGameButton">New Game</button>
           </div>
         </div>
       </div>
       <dialog id="winDialog" aria-label="mastermind-html win dialog">
         <h1>Congratulations!</h1>
         <p>Great job! You broke the code!</p>
-        <button
-          onclick="document.getElementById('winDialog').close(); modalOpen=false;">
-          Close
-        </button>
+        <button class="modalCloseButton btn">Close</button>
       </dialog>
       <dialog id="failureDialog" aria-label="mastermind-html failure dialog">
         <h1>Game Over</h1>
@@ -100,10 +96,7 @@
           of attempts. Better luck next time!
         </p>
         <p>The code was:</p>
-        <button
-          onclick="document.getElementById('failureDialog').close(); modalOpen=false;">
-          Close
-        </button>
+        <button class="modalCloseButton btn">Close</button>
       </dialog>
       <dialog id="keybindsDialog" aria-label="keybinds for mastermind-html">
         <h1>Keybinds & Accessibility</h1>
@@ -113,43 +106,168 @@
           <li>Place Peg: <kbd>1</kbd>, <kbd>2</kbd>, ...</li>
           <li>Delete Peg: <kbd>BACKSPACE</kbd></li>
           <li>New Game: <kbd>SHIFT</kbd> + <kbd>ENTER</kbd></li>
+          <li
+            >Manual Peg Input Mode: <kbd>SHIFT</kbd> + <kbd>CLICK</kbd> (on code
+            peg of choice)</li
+          >
         </ul>
         <p>
           To further improve accessibility, all clickable elements are focusable
           with the <kbd>TAB</kbd> key. The functions of these elements can be
           invoked by pressing <kbd>ENTER</kbd>.
         </p>
-        <button
-          onclick="document.getElementById('keybindsDialog').close(); modalOpen=false;">
-          Close
-        </button>
+        <button class="modalCloseButton btn">Close</button>
       </dialog>
       <dialog id="howToPlayDialog" aria-label="how to play mastermind-html">
         <h1>How To Play</h1>
         <u>Game Rules:</u>
         <ul>
-          <li>The user plays as the <strong>codebreaker</strong>, and must determine a code that is randomly assembled by the <strong>codemaker</strong> - an algorithm.</li>
-          <li><strong>NOTE: </strong>Once this page is loaded, a random code is generated, and the game begins — you do not need to press the "New Game" button initially.</li>
-          <li>A player has a fixed amount of guesses of the code before they fail. The amount of guesses defaults to 10.</li>
-          <li>A player's guess consists of coloured <strong>code pegs</strong>, which much occupy all the available guess slots. The amount of guess slots defaults to 4 (and thus, the codemaker's code also consists of 4 slots).</li>
-          <li>Once the player makes their guess, the algorithm will respond by placing <strong>key pegs</strong>, which are placed by comparing the player's guess with the codemaker's code using the following guidelines:</li>
+          <li>
+            The user plays as the <strong>codebreaker</strong>, and must
+            determine a code that is randomly assembled by the
+            <strong>codemaker</strong> — an algorithm.
+          </li>
+          <li>
+            <strong>NOTE: </strong>Once this page is loaded, a random code is
+            generated, and the game begins. You do not need to press the "New
+            Game" button initially.
+          </li>
+          <li>
+            A player has a fixed amount of guesses of the code before they fail.
+            The amount of guesses defaults to 10.
+          </li>
+          <li>
+            A player's guess consists of coloured <strong>code pegs</strong>,
+            which much occupy all the available guess slots. The amount of guess
+            slots defaults to 4 (and thus, the codemaker's code also consists of
+            4 slots).
+          </li>
+          <li>
+            Once the player makes their guess, the algorithm will respond by
+            placing <strong>key pegs</strong>, which are placed by comparing the
+            player's guess with the codemaker's code using the following
+            guidelines:
+          </li>
           <ul>
-            <li>One <strong>black key peg</strong> for each code peg that is the correct colour and in the correct position.</li>
-            <li>One <strong>gray key peg</strong> for each code peg that is the correct colour but in the wrong position.</li>
-            <li><strong>NOTE: </strong>In an example scenario where the codemaker's code contains one red peg, and the user's code contains two red pegs, only one black key peg is placed.</li>
-            <li><strong>NOTE: </strong>Key pegs are not placed in any particular order.</li>
+            <li>
+              One <strong>black key peg</strong> for each code peg that is the
+              correct colour and in the correct position.
+            </li>
+            <li>
+              One <strong>grey key peg</strong> for each code peg that is the
+              correct colour but in the wrong position.
+            </li>
+            <li>
+              <strong>NOTE: </strong>In an example scenario where the
+              codemaker's code contains one red peg, and the user's code
+              contains two red pegs, only one black key peg is placed.
+            </li>
+            <li>
+              <strong>NOTE: </strong>Key pegs are not placed in any particular
+              order.
+            </li>
           </ul>
         </ul>
         <u>To Play:</u>
         <ol>
-          <li>Click on the code pegs under "Code Peg Picker" to arrange your code. You can use the "Delete" button to remove code pegs if you wish.</li>
-          <li>Press the "Guess" button to submit your code. The algorithm will provide you with feedback using key pegs.</li>
+          <li>
+            Click on the code pegs under "Code Peg Picker" to arrange your code.
+            You can use the "Delete" button to remove code pegs if you wish.
+          </li>
+          <li>
+            Press the "Guess" button to submit your code. The algorithm will
+            provide you with feedback using key pegs.
+          </li>
           <li>To start a new game at any time, press the "New Game" button.</li>
         </ol>
-        <button
-          onclick="document.getElementById('howToPlayDialog').close(); modalOpen=false;">
-          Close
-        </button>
+        <button class="modalCloseButton btn">Close</button>
+      </dialog>
+      <dialog id="settingsDialog" aria-label="mastermind-html settings">
+        <h1>Settings</h1>
+        <form id="settingsForm">
+          <div>
+            <label for="guessesInput">Maximum Guesses</label>
+            <select
+              id="guessesInput"
+              name="maximum guesses"
+              autofocus="false"
+              required>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+            </select>
+          </div>
+          <div>
+            <label for="guessSlotsInput">Code Length</label>
+            <select
+              id="guessSlotsInput"
+              name="code length"
+              autofocus="false"
+              required>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+          <div>
+            <label for="codePegColoursInput">Colours</label>
+            <select
+              id="codePegColoursInput"
+              name="colours"
+              autofocus="false"
+              required>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+            </select>
+          </div>
+          <div>
+            <input id="disableManualAfterInput" type="checkbox" />
+            <label for="disableManualAfterInput"
+              >Disable Manual Peg Input Mode After First Input</label
+            >
+          </div>
+          <button
+            type="submit"
+            class="btn btn-success"
+            value="Submit"
+            id="settingsFormButton"
+            >Submit</button
+          >
+        </form>
+        <div>
+          <button class="modalCloseButton btn">Close</button>
+          <button class="btn btn-error" id="resetUserSettingsButton"
+            >Reset To Defaults</button
+          >
+        </div>
+      </dialog>
+      <dialog
+        id="confirmationDialog"
+        aria-label="mastermind-html confirmation modal">
+        <div id="CdialogContent">
+          <h2 id="CdialogTitle"></h2>
+          <p id="CdialogMessage"></p>
+          <div id="CdialogButtons">
+            <button id="CdialogCancelButton" class="btn"></button>
+            <button id="CdialogConfirmButton" class="btn btn-success"></button>
+          </div>
+        </div>
       </dialog>
       <footer>
         <div class="revealUnder768 footer-transferred-content">
@@ -170,13 +288,23 @@
           <hr />
         </div>
         <p class="header">Information</p>
-        <div>
-          <button id="howToPlayButton" class="btn">How to Play</button>
+        <div class="footer-buttons">
+          <button id="howToPlayButton" class="btn"
+            ><i data-lucide="info" class="mr-small"></i>How To Play</button
+          >
           <button id="keybindsButton" class="btn revealAbove768">
-            Keybinds & Accessibility
+            <i data-lucide="keyboard" class="mr-small"></i>Keybinds &
+            Accessibility
           </button>
+          <button id="settingsButton" class="btn"
+            ><i data-lucide="settings" class="mr-small"></i>Settings</button
+          >
         </div>
       </footer>
     </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+    </script>
   </body>
 </html>
