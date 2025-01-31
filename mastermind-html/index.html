@@ -58,10 +58,10 @@
           </div>
         </div>
         <div id="user-interaction-container">
-          <div id="code-peg-picker">
+          <div id="code-peg-picker" style="min-width: 150px">
             <label class="bold-subtitle">
-              <span>Code Peg Picker</span>
-              <span>
+              <span style="user-select: none">Picker</span>
+              <span style="cursor: pointer">
                 <input type="checkbox" id="manualInputCheckbox" />
                 <i data-lucide="wrench"></i>
               </span>
@@ -71,23 +71,58 @@
             <button class="btn btn-error revealAbove768" id="deleteCodePegButton1">Delete</button>
           </div>
           <div id="other-options">
-            <label class="bold-subtitle">Actions</label>
-            <button class="btn" id="newGameButton">New Game</button>
-            <button
-              class="btn btn-error revealUnder768"
-              id="deleteCodePegButton2"
-              >Delete</button
+            <label class="bold-subtitle" style="user-select: none"
+              >Actions</label
             >
-            <button class="btn btn-success" id="submitGuessButton">
-              Guess
-            </button>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+              ">
+              <div
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: center;
+                  align-items: center;
+                  gap: 0.5rem;
+                ">
+                <button
+                  class="code-view-container"
+                  aria-label="check the code from this game">
+                  <img
+                    src="assets/favicon.png"
+                    style="width: 25px; height: 25px"
+                    alt="code view"
+                    role="button"
+                    draggable="false" />
+                </button>
+                <button class="btn" style="flex-grow: 1" id="newGameButton1"
+                  >New Game</button
+                >
+              </div>
+              <button
+                class="btn btn-error revealUnder768"
+                id="deleteCodePegButton2"
+                >Delete</button
+              >
+              <button class="btn btn-success" id="submitGuessButton">
+                Guess
+              </button>
+            </div>
           </div>
         </div>
       </div>
       <dialog id="winDialog" aria-label="mastermind-html win dialog">
-        <h1>Congratulations!</h1>
+        <h1>Congrats!</h1>
         <p>Great job! You broke the code!</p>
-        <button class="modalCloseButton btn">Close</button>
+        <div class="modal-button-wrap">
+          <button class="modalCloseButton btn">Close</button>
+          <button class="btn btn-success" id="newGameButton2">New Game</button>
+        </div>
       </dialog>
       <dialog id="failureDialog" aria-label="mastermind-html failure dialog">
         <h1>Game Over</h1>
@@ -96,7 +131,10 @@
           of attempts. Better luck next time!
         </p>
         <p>The code was:</p>
-        <button class="modalCloseButton btn">Close</button>
+        <div class="modal-button-wrap">
+          <button class="modalCloseButton btn">Close</button>
+          <button class="btn btn-success" id="newGameButton3">New Game</button>
+        </div>
       </dialog>
       <dialog id="keybindsDialog" aria-label="keybinds for mastermind-html">
         <h1>Keybinds & Accessibility</h1>
@@ -107,8 +145,8 @@
           <li>Delete Peg: <kbd>BACKSPACE</kbd></li>
           <li>New Game: <kbd>SHIFT</kbd> + <kbd>ENTER</kbd></li>
           <li
-            >Manual Peg Input Mode: <kbd>SHIFT</kbd> + <kbd>CLICK</kbd> (on code
-            peg of choice)</li
+            >Toggle <i>Manual Peg Input Mode</i>: <kbd>SHIFT</kbd> +
+            <kbd>CLICK</kbd> (on code peg of choice)</li
           >
         </ul>
         <p>
@@ -239,7 +277,8 @@
           <div>
             <input id="disableManualAfterInput" type="checkbox" />
             <label for="disableManualAfterInput"
-              >Disable Manual Peg Input Mode After First Input</label
+              >Disable <i>Manual Peg Input Mode</i> (<i data-lucide="wrench"></i
+              >) after first input</label
             >
           </div>
           <button
@@ -263,11 +302,16 @@
         <div id="CdialogContent">
           <h2 id="CdialogTitle"></h2>
           <p id="CdialogMessage"></p>
-          <div id="CdialogButtons">
+          <div id="CdialogButtons" class="modal-button-wrap">
             <button id="CdialogCancelButton" class="btn"></button>
             <button id="CdialogConfirmButton" class="btn btn-success"></button>
           </div>
         </div>
+      </dialog>
+      <dialog id="codeViewDialog" aria-label="mastermind-html code view dialog">
+        <h1>The Code</h1>
+        <div></div>
+        <button class="modalCloseButton btn">Close</button>
       </dialog>
       <footer>
         <div class="revealUnder768 footer-transferred-content">
