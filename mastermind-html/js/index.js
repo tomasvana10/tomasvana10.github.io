@@ -10,7 +10,13 @@ import {
 } from "./constants.js";
 import { shadeColour, randomChoice, hasOverflow, Cookies } from "./utils.js";
 
-let winDialog, failureDialog, keybindsDialog, howToPlayDialog, settingsDialog;
+let winDialog,
+  failureDialog,
+  keybindsDialog,
+  howToPlayDialog,
+  settingsDialog,
+  codeViewDialog;
+let manualInputCheckbox;
 
 // game-related variables
 let activeGameSliceIndex = 0; // >= 0, <= GUESSES - 1
@@ -44,7 +50,7 @@ class CodebreakerCode extends Array {
   }
 
   #setInDom(index, val) {
-    const codePegHolders = getActiveGameSlicePegHolders();
+    const codePegHolders = getActiveCodePegHolders();
     const holder = [...codePegHolders.children].filter(el =>
       el.classList.contains("code-peg-holder"),
     )[index];
@@ -68,7 +74,7 @@ class CodebreakerCode extends Array {
   }
 
   #pushToDOM(val) {
-    const codePegHolders = getActiveGameSlicePegHolders();
+    const codePegHolders = getActiveCodePegHolders();
     for (const el of codePegHolders.children) {
       if (
         !el.classList.contains("code-peg-connector") &&
@@ -93,7 +99,7 @@ class CodebreakerCode extends Array {
   }
 
   #popFromDom() {
-    const codePegHolders = getActiveGameSlicePegHolders();
+    const codePegHolders = getActiveCodePegHolders();
     for (const el of [...codePegHolders.children].reverse()) {
       if (el.querySelector(".code-peg")) {
         el.removeChild(el.firstChild);
@@ -113,6 +119,14 @@ window.onload = () => {
     setCodePegHolders();
     setKeyPegHolders();
   }
+
+  manualInputCheckbox = document.getElementById("manualInputCheckbox");
+  manualInputCheckbox.checked = false;
+  // prevent clicks on "Code Peg Picker" text modifying the manualInputCheckbox state
+  document.querySelector(".bold-subtitle > span").onclick = event => {
+    event.preventDefault();
+  };
+
   makeGithubLinksClickable();
   updateGameSlicesBasedOnOverflow();
   createCodePickerPegs();
@@ -122,19 +136,24 @@ window.onload = () => {
   applyCSSStyles();
   assignDialogVariables();
   setDefaultFormValues();
-  document.getElementById("manualInputCheckbox").checked = false;
 
   newGame(true);
 };
 
 document.onkeydown = event => {
-  if (event.key === "Escape") return document.activeElement.blur();
+  if (event.key === "Escape") {
+    modalOpen = false;
+    return document.activeElement.blur();
+  }
   if (modalOpen || postGameConclusion) return;
   if (event.key === "Backspace") {
     deleteCodePeg();
   } else if (event.key === "Enter") {
     event.preventDefault();
-    if (document.activeElement.onclick) {
+    if (
+      document.activeElement.onclick ||
+      document.activeElement.nodeName === "INPUT"
+    ) {
       return document.activeElement.click();
     }
     if (event.shiftKey) {
@@ -155,7 +174,19 @@ function applyButtonListeners() {
   document.getElementById("deleteCodePegButton1").onclick = deleteCodePeg;
   document.getElementById("deleteCodePegButton2").onclick = deleteCodePeg;
   document.getElementById("submitGuessButton").onclick = submitGuess;
-  document.getElementById("newGameButton").onclick = () => newGame();
+  document.getElementById("newGameButton1").onclick = () => newGame();
+  [
+    document.getElementById("newGameButton2"),
+    document.getElementById("newGameButton3"),
+  ].forEach(
+    el =>
+      (el.onclick = () => {
+        winDialog.close();
+        failureDialog.close();
+        modalOpen = false;
+        newGame();
+      }),
+  );
   document.getElementById("keybindsButton").onclick = () => {
     keybindsDialog.showModal();
     modalOpen = true;
@@ -169,11 +200,15 @@ function applyButtonListeners() {
     document.getElementById("guessesInput").blur();
     modalOpen = true;
   };
+  document.querySelector(".code-view-container").onclick = () => {
+    codeViewDialog.showModal();
+    modalOpen = true;
+  };
   document.getElementById("resetUserSettingsButton").onclick = () => {
     resetUserSettings();
     window.location.reload();
   };
-  document.getElementById("manualInputCheckbox").onchange = event => {
+  manualInputCheckbox.onchange = event => {
     if (!event.target.checked) updateManualColourInputSelection("");
   };
 }
@@ -259,6 +294,7 @@ function assignDialogVariables() {
   keybindsDialog = document.getElementById(MODALS[2]);
   howToPlayDialog = document.getElementById(MODALS[3]);
   settingsDialog = document.getElementById(MODALS[4]);
+  codeViewDialog = document.getElementById(MODALS[5]);
 }
 
 function setDefaultFormValues() {
@@ -307,15 +343,24 @@ function makeGithubLinksClickable() {
     );
 }
 
+function createEnumeration(index) {
+  const enumeration = document.createElement("div");
+  enumeration.className = "enumeration";
+  enumeration.innerHTML = `${index}`;
+  return enumeration;
+}
+
 function setGameSlices() {
   const slices = document.getElementById("game-slices");
   const firstSlice = slices.children[0];
   firstSlice.id = "game-slice-0";
+  firstSlice.append(createEnumeration(1));
 
   for (let i = 1; i < GUESSES; i++) {
     const newSlice = firstSlice.cloneNode(true);
     newSlice.id = `game-slice-${i}`;
     slices.appendChild(newSlice);
+    newSlice.querySelector(".enumeration").innerHTML = `${i + 1}`;
   }
 }
 
@@ -328,6 +373,7 @@ function setCodePegHolders() {
       const holder = document.createElement("div");
       holder.dataset.index = `${i}`;
       holder.className = "code-peg-holder";
+      holder.tabIndex = "-1";
       holder.onclick = () => {
         if (manualColourInputSelection && activeGameSliceIndex === index) {
           codebreakerCode.set(i, manualColourInputSelection);
@@ -396,16 +442,41 @@ function isOnPhone() {
   return window.innerWidth < MAJOR_MEDIA_BREAKPOINT;
 }
 
+function focusFirstEmptyPegHolder() {
+  const holders = [...getActiveCodePegHolders().children].filter(holder =>
+    holder.classList.contains("code-peg-holder"),
+  );
+  const index = holders.findIndex(el => !el.querySelector(".code-peg"));
+  if (index === -1) return holders[0].focus();
+  holders[index].focus();
+}
+
+function updateGameSliceTabIndices(setNew) {
+  document
+    .querySelectorAll(".code-peg-holder")
+    .forEach(el => (el.tabIndex = "-1"));
+  if (!setNew) return;
+  getActiveCodePegHolders()
+    .querySelectorAll(".code-peg-holder")
+    .forEach(el => (el.tabIndex = "0"));
+  focusFirstEmptyPegHolder();
+}
+
 function updateManualColourInputSelection(colour) {
   document
     .querySelectorAll(".game-slice")
     .forEach(el => el.classList.remove("manual"));
   if (colour) getActiveGameSlice().classList.add("manual");
+  updateGameSliceTabIndices(Boolean(colour));
   document.querySelectorAll(".picker .code-peg").forEach(el => {
     if (el.dataset.colour !== colour) return el.classList.remove("manual");
     el.classList.add("manual");
   });
-  if (!colour) document.getElementById("manualInputCheckbox").checked = false;
+  if (!colour) {
+    manualInputCheckbox.checked = false;
+  } else {
+    manualInputCheckbox.checked = true;
+  }
   manualColourInputSelection = colour;
 }
 
@@ -459,7 +530,7 @@ function createKeyPeg(colour) {
 
 function createCodebreakerPegSequenceElement() {
   const div = document.createElement("div");
-  div.id = "codemakerRevealedCode";
+  div.className = "codemakerRevealedCode";
   for (const colour of codemakerCode) {
     div.appendChild(createCodePeg(colour));
   }
@@ -470,11 +541,11 @@ function getActiveGameSlice() {
   return document.querySelector(`#game-slice-${activeGameSliceIndex}`);
 }
 
-function getActiveGameSlicePegHolders() {
+function getActiveCodePegHolders() {
   return getActiveGameSlice().querySelector(".code-peg-holders");
 }
 
-function getActiveGameSliceKeyHolders() {
+function getActiveKeyPegHolders() {
   return getActiveGameSlice().querySelector(".key-peg-holders");
 }
 
@@ -500,6 +571,24 @@ function setTemporaryFeedbackText(selector, text, timeout = 750) {
   }, timeout);
 }
 
+function setAttemptsCountInWinModal() {
+  winDialog.querySelector("p").innerHTML =
+    `Great job! You broke the code in ${activeGameSliceIndex} ${activeGameSliceIndex === 1 ? "guess" : "guesses"}!`;
+}
+
+function toggleCodeViewButton(state) {
+  const view = document.querySelector(".code-view-container");
+  if (state) {
+    codeViewDialog.insertBefore(
+      createCodebreakerPegSequenceElement(),
+      codeViewDialog.lastElementChild,
+    );
+    codeViewDialog.children[1].remove();
+    return view.classList.add("active");
+  }
+  return view.classList.remove("active");
+}
+
 /* GAME-RELATED FUNCTIONS */
 /**
  *
@@ -508,10 +597,7 @@ function setTemporaryFeedbackText(selector, text, timeout = 750) {
  */
 function addCodePeg(colour, event = undefined) {
   if (postGameConclusion) return;
-  if (
-    event?.shiftKey ||
-    document.getElementById("manualInputCheckbox").checked
-  ) {
+  if (event?.shiftKey || manualInputCheckbox.checked) {
     if (event.target.dataset.colour === manualColourInputSelection)
       return updateManualColourInputSelection("");
     return updateManualColourInputSelection(colour);
@@ -534,7 +620,7 @@ function wipeAllBoardPegs() {
 }
 
 function applyKeyPegs(evaluationMap) {
-  const keyPegHolders = getActiveGameSliceKeyHolders();
+  const keyPegHolders = getActiveKeyPegHolders();
   let keyPegCount =
     evaluationMap.correctPositionAndColour + evaluationMap.correctColourOnly;
   for (let i = 0; i < keyPegCount; i++) {
@@ -558,6 +644,7 @@ function makeCode() {
   for (let i = 0; i < GUESS_SLOTS; i++) {
     codemakerCode.push(randomChoice(CODE_PEG_COLOURS));
   }
+  console.log(codemakerCode);
 }
 
 function newGame(onload = false, force = false) {
@@ -575,9 +662,10 @@ function newGame(onload = false, force = false) {
     .forEach(slice => slice.classList.remove("active"));
   activeGameSliceIndex = 0;
   postGameConclusion = false;
+  toggleCodeViewButton(false);
   codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
   updateManualColourInputSelection("");
-  setTemporaryFeedbackText("#newGameButton", "Started!");
+  setTemporaryFeedbackText("#newGameButton1", "Started!");
   wipeAllBoardPegs();
   makeCode();
   getActiveGameSlice().classList.add("active");
@@ -628,13 +716,15 @@ function submitGuess() {
   activeGameSliceIndex++;
   if (evaluation.correctPositionAndColour === GUESS_SLOTS) {
     // won
+    setAttemptsCountInWinModal();
     winDialog.showModal();
     modalOpen = true;
     postGameConclusion = true;
+    toggleCodeViewButton(true);
     confetti({ particleCount: 200, disableForReducedMotion: true });
   } else if (activeGameSliceIndex + 1 > GUESSES) {
     // lost
-    document.querySelector("#codemakerRevealedCode")?.remove();
+    document.querySelector(".codemakerRevealedCode")?.remove();
     failureDialog.showModal();
     modalOpen = true;
     failureDialog.insertBefore(
@@ -642,6 +732,7 @@ function submitGuess() {
       failureDialog.lastElementChild,
     );
     postGameConclusion = true;
+    toggleCodeViewButton(true);
   } else {
     // next game slice
     oldActiveGameSlice.classList.remove("active");
