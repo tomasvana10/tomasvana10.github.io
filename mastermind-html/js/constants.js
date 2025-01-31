@@ -1,5 +1,5 @@
 /**
- * @typedef {"red" | "yellow" | "blue" | "green" | "black" | "azure" | "violet" | "mediumturquoise", "saddlebrown"} CodePegColour
+ * @typedef {"red" | "yellow" | "blue" | "green" | "black" | "azure" | "violet" | "mediumturquoise" | "saddlebrown"} CodePegColour
  */
 
 import { Cookies } from "./utils.js";
@@ -47,6 +47,7 @@ const MODALS = [
   "keybindsDialog",
   "howToPlayDialog",
   "settingsDialog",
+  "codeViewDialog",
 ];
 
 export {
