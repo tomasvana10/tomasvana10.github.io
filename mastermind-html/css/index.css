@@ -54,6 +54,12 @@ dialog {
   max-width: 1000px;
 }
 
+.modal-button-wrap {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 #game {
   min-height: 100vh;
 }
@@ -135,6 +141,7 @@ button:focus {
 input[type="checkbox"] {
   height: 20px;
   width: 20px;
+  cursor: pointer;
 }
 
 #github-clickable:active {
@@ -220,6 +227,7 @@ input[type="checkbox"] {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  position: relative;
 }
 
 .game-slice.active::before {
@@ -237,6 +245,7 @@ input[type="checkbox"] {
     gainsboro 10px,
     gainsboro 20px
   );
+  cursor: pointer;
 }
 
 .code-peg-holders,
@@ -270,6 +279,25 @@ input[type="checkbox"] {
   grid-template-rows: repeat(2, 1fr);
   gap: 1rem;
   position: relative;
+}
+
+.enumeration {
+  position: absolute;
+  top: 6px;
+  left: 0px;
+  font-size: 0.5rem;
+  user-select: none;
+  border: thin solid black;
+  border-radius: 5px;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-slice.active .enumeration {
+  top: 30.5px;
 }
 
 .key-peg-holder,
@@ -358,6 +386,10 @@ input[type="checkbox"] {
   gap: 0.5rem;
 }
 
+#code-peg-picker {
+  min-width: 150px;
+}
+
 #code-peg-picker .picker {
   display: flex;
   flex-direction: row;
@@ -410,12 +442,6 @@ hr {
   gap: 0.5rem;
 }
 
-@media (max-width: 417px) {
-  #settingsForm + div {
-    flex-direction: column-reverse;
-  }
-}
-
 .footer-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -429,6 +455,46 @@ hr {
 
 .revealAbove768 {
   display: inline-flex;
+}
+
+.codemakerRevealedCode {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 20px;
+}
+
+.code-view-container {
+  display: none;
+}
+
+.code-view-container.active {
+  display: flex;
+  width: 25px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  border: thin solid black;
+  overflow: hidden;
+  transform: rotate(45deg);
+  cursor: pointer;
+}
+
+.code-view-container.active + button {
+  min-width: 35px;
+  width: 115px;
+}
+
+.code-view-container.active img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 417px) {
+  #settingsForm + div {
+    flex-direction: column-reverse;
+  }
 }
 
 @media (max-width: 580px) {
@@ -553,6 +619,15 @@ hr {
   #header {
     display: none;
   }
+
+  .enumeration,
+  .game-slice.active .enumeration {
+    top: 15.25px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    font-weight: bold;
+  }
 }
 
 @media (max-width: 600px) {
@@ -579,14 +654,8 @@ hr {
   }
 }
 
-#codemakerRevealedCode {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 20px;
-}
-
 @media (min-width: 768px) {
-  #codemakerRevealedCode {
+  .codemakerRevealedCode {
     flex-direction: column;
   }
 }
