@@ -144,22 +144,22 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-#github-clickable:active {
+.github-clickable:active {
   border-color: blue;
 }
 
-#code-peg-picker label {
+#codePegPicker label {
   display: flex;
   gap: 0.2rem;
   align-items: center;
   justify-content: center;
 }
 
-#code-peg-picker label > span:first-child {
+#codePegPicker label > span:first-child {
   margin-right: 10px;
 }
 
-#code-peg-picker label span {
+#codePegPicker label span {
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
@@ -212,7 +212,7 @@ input[type="checkbox"] {
     rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
 }
 
-#game-slices {
+#gameSlices {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -360,7 +360,7 @@ input[type="checkbox"] {
   border-radius: 4px;
 }
 
-#user-interaction-container {
+#userInteractionContainer {
   background: whitesmoke;
   padding: 30px 17.5px;
   border-radius: 2em;
@@ -379,18 +379,34 @@ input[type="checkbox"] {
   gap: 2rem;
 }
 
-#code-peg-picker,
-#other-options {
+#actionsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#newGameRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#codePegPicker,
+#otherOptions {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-#code-peg-picker {
+#codePegPicker {
   min-width: 150px;
 }
 
-#code-peg-picker .picker {
+#codePegPicker .picker {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -398,12 +414,12 @@ input[type="checkbox"] {
   gap: 0.1rem;
 }
 
-#code-peg-picker .picker-wrapper {
+#codePegPicker .picker-wrapper {
   overflow: scroll;
   max-height: 50%;
 }
 
-#code-peg-picker .btn {
+#codePegPicker .btn {
   width: 50%;
   place-self: center;
 }
@@ -449,25 +465,25 @@ hr {
   gap: 0.5rem;
 }
 
-.revealUnder768 {
+.reveal-under-768 {
   display: none;
 }
 
-.revealAbove768 {
+.reveal-above-768 {
   display: inline-flex;
 }
 
-.codemakerRevealedCode {
+.codemaker-revealed-code {
   display: flex;
   flex-direction: row;
   margin-bottom: 20px;
 }
 
-.code-view-container {
+#codeViewContainer {
   display: none;
 }
 
-.code-view-container.active {
+#codeViewContainer.active {
   display: flex;
   width: 25px;
   height: 25px;
@@ -479,12 +495,12 @@ hr {
   cursor: pointer;
 }
 
-.code-view-container.active + button {
+#codeViewContainer.active + button {
   min-width: 35px;
   width: 115px;
 }
 
-.code-view-container.active img {
+#codeViewContainer.active img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -530,7 +546,7 @@ hr {
     width: 100%;
   }
 
-  #code-peg-picker label span {
+  #codePegPicker label span {
     margin-left: 0;
   }
 
@@ -542,7 +558,7 @@ hr {
     margin: auto;
   }
 
-  #game-slices {
+  #gameSlices {
     flex-direction: column;
     align-items: center;
     overflow-y: scroll;
@@ -580,7 +596,7 @@ hr {
     height: 0px;
   }
 
-  #user-interaction-container {
+  #userInteractionContainer {
     max-width: 86%;
     min-width: 0px;
     width: fit-content;
@@ -606,12 +622,12 @@ hr {
     scale: 0.75;
   }
 
-  #game-slices {
+  #gameSlices {
     gap: 0px;
     justify-content: start;
   }
 
-  #game-slices,
+  #gameSlices,
   #board {
     overflow-x: hidden;
   }
@@ -643,7 +659,7 @@ hr {
     margin-top: -10px;
   }
 
-  #game-slices,
+  #gameSlices,
   #board {
     overflow-x: hidden;
   }
@@ -655,17 +671,17 @@ hr {
 }
 
 @media (min-width: 768px) {
-  .codemakerRevealedCode {
+  .codemaker-revealed-code {
     flex-direction: column;
   }
 }
 
 @media (max-width: 355px) {
-  #code-peg-picker {
+  #codePegPicker {
     scale: 0.8;
   }
 
-  #code-peg-picker .picker {
+  #codePegPicker .picker {
     width: 150px;
   }
 }
