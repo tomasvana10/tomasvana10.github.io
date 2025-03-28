@@ -5,16 +5,22 @@ import {
   MAJOR_MEDIA_BREAKPOINT,
   MY_GITHUB,
   MODALS,
-  MUS_DEFAULTS,
   DISABLE_MANUAL_AFTER_INPUT,
 } from "./constants.js";
-import { shadeColour, randomChoice, hasOverflow, Cookies } from "./utils.js";
+import {
+  shadeColour,
+  randomChoice,
+  hasOverflow,
+  Cookies,
+  StatTrack,
+} from "./utils.js";
 
 let winDialog,
   failureDialog,
   keybindsDialog,
   howToPlayDialog,
   settingsDialog,
+  statsDialog,
   codeViewDialog;
 let manualInputCheckbox;
 
@@ -24,11 +30,11 @@ let postGameConclusion = false;
 let manualColourInputSelection = "";
 
 let modalOpen = false;
-let codemakerCode = [];
 let temporaryFeedbackRunningTasks = new Map();
 
 class CodebreakerCode extends Array {
   #EMPTY = "__EMPTY__";
+  static record = [];
 
   constructor(maxLength, ...args) {
     super(...args);
@@ -40,12 +46,15 @@ class CodebreakerCode extends Array {
     return this.filter(val => val !== this.#EMPTY).length;
   }
 
+  done() {
+    CodebreakerCode.record.push(this);
+  }
+
   set(index, val) {
     if (index > this.length - 1) {
       throw new Error(`Index must be less than or equal to ${this.length - 1}`);
     }
     this[index] = val;
-    console.log(this);
     this.#setInDom(index, val);
   }
 
@@ -69,7 +78,6 @@ class CodebreakerCode extends Array {
       this[index] = val;
       this.#pushToDOM(val);
     }
-    console.log(this);
     return this.length;
   }
 
@@ -92,7 +100,6 @@ class CodebreakerCode extends Array {
       const value = this[index];
       this[index] = this.#EMPTY;
       this.#popFromDom();
-      console.log(this);
       return value;
     }
     return undefined;
@@ -109,6 +116,7 @@ class CodebreakerCode extends Array {
   }
 }
 
+let codemakerCode = [];
 let codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
 
 window.onresize = () => updateGameSlicesBasedOnOverflow();
@@ -200,12 +208,18 @@ function applyButtonListeners() {
     document.getElementById("guessesInput").blur();
     modalOpen = true;
   };
-  document.querySelector(".code-view-container").onclick = () => {
+  document.getElementById("statsButton").onclick = () => {
+    statsDialog.showModal();
+    statsDialog.querySelector("#statsDialogInsertionNode").innerHTML =
+      StatTrack.getHTMLRepresentation();
+    modalOpen = true;
+  };
+  document.getElementById("codeViewContainer").onclick = () => {
     codeViewDialog.showModal();
     modalOpen = true;
   };
   document.getElementById("resetUserSettingsButton").onclick = () => {
-    resetUserSettings();
+    Cookies.resetUserSettings();
     window.location.reload();
   };
   manualInputCheckbox.onchange = event => {
@@ -216,11 +230,12 @@ function applyButtonListeners() {
 function applyModalCloseButtonListeners() {
   MODALS.forEach(
     id =>
-      (document.getElementById(id).querySelector(".modalCloseButton").onclick =
-        () => {
-          document.getElementById(id).close();
-          modalOpen = false;
-        }),
+      (document
+        .getElementById(id)
+        .querySelector(".modal-close-button").onclick = () => {
+        document.getElementById(id).close();
+        modalOpen = false;
+      }),
   );
 }
 
@@ -230,16 +245,6 @@ function applyFormSubmitListeners() {
     window.location.reload();
     submitSettingsForm();
   };
-}
-
-function resetUserSettings() {
-  Cookies.setCookie("MUS_guesses", MUS_DEFAULTS.guesses);
-  Cookies.setCookie("MUS_guess_slots", MUS_DEFAULTS.guessSlots);
-  Cookies.setCookie("MUS_code_peg_colours", MUS_DEFAULTS.codePegColours);
-  Cookies.setCookie(
-    "MUS_disable_manual_after_input",
-    MUS_DEFAULTS.disableManualAfterInput,
-  );
 }
 
 function openConfirmationDialog(
@@ -294,7 +299,8 @@ function assignDialogVariables() {
   keybindsDialog = document.getElementById(MODALS[2]);
   howToPlayDialog = document.getElementById(MODALS[3]);
   settingsDialog = document.getElementById(MODALS[4]);
-  codeViewDialog = document.getElementById(MODALS[5]);
+  statsDialog = document.getElementById(MODALS[5]);
+  codeViewDialog = document.getElementById(MODALS[6]);
 }
 
 function setDefaultFormValues() {
@@ -326,7 +332,7 @@ function submitSettingsForm() {
 }
 
 function createCodePickerPegs() {
-  const picker = document.querySelector("#code-peg-picker .picker");
+  const picker = document.querySelector("#codePegPicker .picker");
   for (const colour of CODE_PEG_COLOURS)
     picker.appendChild(
       createCodePeg(colour, true, event => addCodePeg(colour, event), true),
@@ -335,7 +341,7 @@ function createCodePickerPegs() {
 
 function makeGithubLinksClickable() {
   document
-    .querySelectorAll("#github-clickable, #githubButton")
+    .querySelectorAll(".github-clickable")
     .forEach(node =>
       node.addEventListener("click", () =>
         window.open(MY_GITHUB, "_blank").focus(),
@@ -351,7 +357,7 @@ function createEnumeration(index) {
 }
 
 function setGameSlices() {
-  const slices = document.getElementById("game-slices");
+  const slices = document.getElementById("gameSlices");
   const firstSlice = slices.children[0];
   firstSlice.id = "game-slice-0";
   firstSlice.append(createEnumeration(1));
@@ -401,7 +407,7 @@ function setKeyPegHolders() {
 }
 
 function updateGameSlicesBasedOnOverflow() {
-  const slices = document.getElementById("game-slices");
+  const slices = document.getElementById("gameSlices");
   if (hasOverflow(slices, true)) {
     slices.style.justifyContent = "start";
     slices.style.paddingLeft = "10px";
@@ -414,7 +420,7 @@ function updateGameSlicesBasedOnOverflow() {
 }
 
 function bindScrollToGameSlices() {
-  const slices = document.getElementById("game-slices");
+  const slices = document.getElementById("gameSlices");
   slices.onwheel = event => {
     if (event.ctrlKey) return; // allow event to pass, as the user is likely zooming with ctrl + scroll
     if (
@@ -434,7 +440,7 @@ function bindScrollToGameSlices() {
 }
 
 function unbindScrollFromGameSlices() {
-  const slices = document.getElementById("game-slices");
+  const slices = document.getElementById("gameSlices");
   slices.onwheel = () => {};
 }
 
@@ -530,7 +536,7 @@ function createKeyPeg(colour) {
 
 function createCodebreakerPegSequenceElement() {
   const div = document.createElement("div");
-  div.className = "codemakerRevealedCode";
+  div.className = "codemaker-revealed-code";
   for (const colour of codemakerCode) {
     div.appendChild(createCodePeg(colour));
   }
@@ -551,7 +557,7 @@ function getActiveKeyPegHolders() {
 
 function scrollActiveGameSliceIntoView() {
   const onPhone = isOnPhone();
-  if (hasOverflow(document.getElementById("game-slices", !onPhone, onPhone)))
+  if (hasOverflow(document.getElementById("gameSlices", !onPhone, onPhone)))
     getActiveGameSlice().scrollIntoView({
       behavior: "smooth",
       block: "nearest",
@@ -577,7 +583,7 @@ function setAttemptsCountInWinModal() {
 }
 
 function toggleCodeViewButton(state) {
-  const view = document.querySelector(".code-view-container");
+  const view = document.getElementById("codeViewContainer");
   if (state) {
     codeViewDialog.insertBefore(
       createCodebreakerPegSequenceElement(),
@@ -644,7 +650,6 @@ function makeCode() {
   for (let i = 0; i < GUESS_SLOTS; i++) {
     codemakerCode.push(randomChoice(CODE_PEG_COLOURS));
   }
-  console.log(codemakerCode);
 }
 
 function newGame(onload = false, force = false) {
@@ -710,12 +715,16 @@ function submitGuess() {
     );
   const evaluation = evaluateGuess(codemakerCode, codebreakerCode);
   applyKeyPegs(JSON.parse(JSON.stringify(evaluation)));
+
+  codebreakerCode.done();
   codebreakerCode = new CodebreakerCode(GUESS_SLOTS);
   updateManualColourInputSelection("");
   const oldActiveGameSlice = getActiveGameSlice();
   activeGameSliceIndex++;
+
+  let result;
   if (evaluation.correctPositionAndColour === GUESS_SLOTS) {
-    // won
+    result = "win";
     setAttemptsCountInWinModal();
     winDialog.showModal();
     modalOpen = true;
@@ -723,8 +732,8 @@ function submitGuess() {
     toggleCodeViewButton(true);
     confetti({ particleCount: 200, disableForReducedMotion: true });
   } else if (activeGameSliceIndex + 1 > GUESSES) {
-    // lost
-    document.querySelector(".codemakerRevealedCode")?.remove();
+    result = "loss";
+    document.querySelector(".codemaker-revealed-code")?.remove();
     failureDialog.showModal();
     modalOpen = true;
     failureDialog.insertBefore(
@@ -738,6 +747,18 @@ function submitGuess() {
     oldActiveGameSlice.classList.remove("active");
     getActiveGameSlice().classList.add("active");
     scrollActiveGameSliceIntoView();
+  }
+
+  if (postGameConclusion) {
+    StatTrack.addGameRecord(
+      codemakerCode,
+      CodebreakerCode.record,
+      result === "win" ? activeGameSliceIndex + 1 : activeGameSliceIndex,
+      GUESSES,
+      GUESS_SLOTS,
+      CODE_PEG_COLOURS,
+      result,
+    );
   }
 }
 
