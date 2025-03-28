@@ -10,7 +10,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js "></script>
   </head>
-  <body>
+ <body>
     <script type="module" src="js/index.js"></script>
     <div id="content">
       <div id="header">
@@ -32,7 +32,7 @@
             </div>
           </div>
           <div class="header-end">
-            <button id="github-clickable" aria-label="button">
+            <button class="github-clickable" aria-label="button">
               <svg
                 aria-label="github logo"
                 xmlns="http://www.w3.org/2000/svg"
@@ -50,15 +50,15 @@
       </div>
       <div id="game">
         <div id="board">
-          <div id="game-slices">
+          <div id="gameSlices">
             <div class="game-slice">
               <div class="code-peg-holders"> </div>
               <div class="key-peg-holders"> </div>
             </div>
           </div>
         </div>
-        <div id="user-interaction-container">
-          <div id="code-peg-picker" style="min-width: 150px">
+        <div id="userInteractionContainer">
+          <div id="codePegPicker" style="min-width: 150px">
             <label class="bold-subtitle">
               <span style="user-select: none">Picker</span>
               <span style="cursor: pointer">
@@ -68,33 +68,19 @@
             </label>
             <div class="picker"></div>
             <!--prettier-ignore-->
-            <button class="btn btn-error revealAbove768" id="deleteCodePegButton1">Delete</button>
+            <button class="btn btn-error reveal-above-768" id="deleteCodePegButton1">Delete</button>
           </div>
-          <div id="other-options">
+          <div id="otherOptions">
             <label class="bold-subtitle" style="user-select: none"
               >Actions</label
             >
-            <div
-              style="
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-              ">
-              <div
-                style="
-                  display: flex;
-                  flex-direction: row;
-                  justify-content: center;
-                  align-items: center;
-                  gap: 0.5rem;
-                ">
+            <div id="actionsContainer">
+              <div id="newGameRow">
                 <button
-                  class="code-view-container"
+                  id="codeViewContainer"
                   aria-label="check the code from this game">
                   <img
-                    src="./favicon.png"
+                    src="assets/favicon.png"
                     style="width: 25px; height: 25px"
                     alt="code view"
                     role="button"
@@ -105,7 +91,7 @@
                 >
               </div>
               <button
-                class="btn btn-error revealUnder768"
+                class="btn btn-error reveal-under-768"
                 id="deleteCodePegButton2"
                 >Delete</button
               >
@@ -120,7 +106,7 @@
         <h1>Congrats!</h1>
         <p>Great job! You broke the code!</p>
         <div class="modal-button-wrap">
-          <button class="modalCloseButton btn">Close</button>
+          <button class="modal-close-button btn">Close</button>
           <button class="btn btn-success" id="newGameButton2">New Game</button>
         </div>
       </dialog>
@@ -132,7 +118,7 @@
         </p>
         <p>The code was:</p>
         <div class="modal-button-wrap">
-          <button class="modalCloseButton btn">Close</button>
+          <button class="modal-close-button btn">Close</button>
           <button class="btn btn-success" id="newGameButton3">New Game</button>
         </div>
       </dialog>
@@ -154,7 +140,7 @@
           with the <kbd>TAB</kbd> key. The functions of these elements can be
           invoked by pressing <kbd>ENTER</kbd>.
         </p>
-        <button class="modalCloseButton btn">Close</button>
+        <button class="modal-close-button btn">Close</button>
       </dialog>
       <dialog id="howToPlayDialog" aria-label="how to play mastermind-html">
         <h1>How To Play</h1>
@@ -218,7 +204,7 @@
           </li>
           <li>To start a new game at any time, press the "New Game" button.</li>
         </ol>
-        <button class="modalCloseButton btn">Close</button>
+        <button class="modal-close-button btn">Close</button>
       </dialog>
       <dialog id="settingsDialog" aria-label="mastermind-html settings">
         <h1>Settings</h1>
@@ -286,15 +272,22 @@
             class="btn btn-success"
             value="Submit"
             id="settingsFormButton"
-            >Submit</button
+            >Save</button
           >
         </form>
         <div>
-          <button class="modalCloseButton btn">Close</button>
+          <button class="modal-close-button btn">Close</button>
           <button class="btn btn-error" id="resetUserSettingsButton"
             >Reset To Defaults</button
           >
         </div>
+      </dialog>
+      <dialog
+        id="statsDialog"
+        aria-label="statistics for mastermind-html player">
+        <h1>Your Statistics</h1>
+        <div id="statsDialogInsertionNode"></div>
+        <button class="modal-close-button btn">Close</button>
       </dialog>
       <dialog
         id="confirmationDialog"
@@ -311,10 +304,10 @@
       <dialog id="codeViewDialog" aria-label="mastermind-html code view dialog">
         <h1>The Code</h1>
         <div></div>
-        <button class="modalCloseButton btn">Close</button>
+        <button class="modal-close-button btn">Close</button>
       </dialog>
       <footer>
-        <div class="revealUnder768 footer-transferred-content">
+        <div class="reveal-under-768 footer-transferred-content">
           <div>
             <div class="title">
               <span>
@@ -336,12 +329,16 @@
           <button id="howToPlayButton" class="btn"
             ><i data-lucide="info" class="mr-small"></i>How To Play</button
           >
-          <button id="keybindsButton" class="btn revealAbove768">
+          <button id="keybindsButton" class="btn reveal-above-768">
             <i data-lucide="keyboard" class="mr-small"></i>Keybinds &
             Accessibility
           </button>
           <button id="settingsButton" class="btn"
             ><i data-lucide="settings" class="mr-small"></i>Settings</button
+          >
+          <button id="statsButton" class="btn"
+            ><i data-lucide="file-chart-column" class="mr-small"></i
+            >Stats</button
           >
         </div>
       </footer>
