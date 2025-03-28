@@ -47,6 +47,7 @@ const MODALS = [
   "keybindsDialog",
   "howToPlayDialog",
   "settingsDialog",
+  "statsDialog",
   "codeViewDialog",
 ];
 
