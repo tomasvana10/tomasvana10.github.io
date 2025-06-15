@@ -9,42 +9,59 @@
     @font-face {
       font-family: "Inter";
       src: url("./mastermind-html/fonts/Inter_28pt-Regular.ttf") format("truetype");
-      font-weight: 400;
+      font-weight: normal;
       font-style: normal;
     }
 
     @font-face {
       font-family: "Inter";
       src: url("./mastermind-html/fonts/Inter_28pt-Bold.ttf") format("truetype");
-      font-weight: 700;
+      font-weight: bold;
       font-style: normal;
     }
 
     body {
-      font-family: "Inter", sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       font-weight: 400;
       background-color: #f5f5f5;
       margin: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       font-size: 18px;
     }
 
+    h1 {
+      width: fit-content;
+      padding: 5px;
+      color: white;
+      text-shadow: 2px 2px 1px black, 2px -1px 1px black, -1px 1px 1px black,
+        -1px -1px 1px black;
+      transition: all 300ms;
+    }
+
+    h1:hover {
+      text-shadow: none;
+      box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 4px 0px inset;
+      color: black;
+      transform: skewX(-10deg);
+    }
+
     h3 {
-      padding-top: 0px;
-      padding-bottom: 10px;
+      font-weight: normal;
     }
 
     .container {
-      width: 90%;
-      max-width: 750px;
-      text-align: center;
+      width: 500px;
+      max-width: 85%;
+      height: 100vh;
+      min-height: 100vh;
     }
 
     .project-items {
+      margin-top: 35px;
       list-style-type: none;
       padding: 0;
     }
@@ -189,9 +206,13 @@
 <body>
   <div class="container">
     <h1>tomasvana10</h1>
-    <h3 style="font-weight: 400;">.github.io</h3>
+    <h3>.github.io</h3>
     <ul class="project-items" id="projectList"></ul>
   </div>
+  <figure>
+    <img src="assets/goober.png" width="200px" alt="blue emoji face with raised eyebrow">
+    <figcaption style="text-align: center">𝓱𝓮𝓵𝓵𝓸 𝓿𝓻𝓸</figcaption>
+  </figure>
 
   <script>
     const projects = [
@@ -199,13 +220,13 @@
         name: "xpuz",
         link: "https://github.com/tomasvana10/xpuz",
         checkItOutLink: "/xpuz",
-        description: "This project is a procedural crossword puzzle generator I designed for a school project using CustomTkinter and Flask.",
+        description: "The Flask component of my procedural crossword generator",
       },
       {
         name: "mastermind-html",
         link: "https://github.com/tomasvana10/mastermind-html",
         checkItOutLink: "/mastermind-html",
-        description: "Play the mastermind board game on your browser!",
+        description: "A replica of the Mastermind board game!",
       },
     ];
 
