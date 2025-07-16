@@ -93,6 +93,7 @@ class StatTrack {
       guessSlots,
       colours,
       result,
+      time: Date.now(),
     });
 
     StatTrack._setStats(stats);

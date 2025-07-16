@@ -12,6 +12,10 @@
   font-style: normal;
 }
 
+:root {
+  --curve: 0.25rem;
+}
+
 html {
   background:
     conic-gradient(
@@ -68,7 +72,7 @@ dialog {
   align-items: center;
   background-color: whitesmoke;
   border: 2px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.25rem;
+  border-radius: var(--curve);
   box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
   box-sizing: border-box;
   color: rgba(0, 0, 0, 0.85);
@@ -201,7 +205,7 @@ input[type="checkbox"] {
 
 #board {
   background: whitesmoke;
-  border-radius: 2em;
+  border-radius: var(--curve);
   width: 95%;
   height: 550px;
   margin: 35px auto;
@@ -220,6 +224,7 @@ input[type="checkbox"] {
   height: 100%;
   overflow-x: scroll;
   overflow-y: hidden;
+  counter-reset: enumerationCounter;
 }
 
 .game-slice {
@@ -235,6 +240,25 @@ input[type="checkbox"] {
   display: block;
   width: 100%;
   border-bottom: thin solid black;
+}
+
+/* the purely static styles for .code-peg */
+.code-peg {
+  box-shadow:
+    -3px 3px 10px 2px rgba(0, 0, 0, 0.6),
+    2px -2px 8px rgba(255, 255, 255, 0.5) inset;
+}
+
+.picker .code-peg:active {
+  transform: scale(1.1);
+  transition: all 0.2ms;
+}
+
+/* the purely static styles for .key-peg */
+.key-peg {
+  box-shadow:
+    -3px 3px 9px 2px rgba(0, 0, 0, 0.6),
+    1px -1px 4px rgba(255, 255, 255, 0.5) inset;
 }
 
 .game-slice.active.manual .code-peg-holders .code-peg-holder {
@@ -259,7 +283,7 @@ input[type="checkbox"] {
     rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
     rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
   border: 1px solid black;
-  border-radius: 0.2rem;
+  border-radius: var(--curve);
   display: grid;
 }
 
@@ -288,12 +312,17 @@ input[type="checkbox"] {
   font-size: 0.5rem;
   user-select: none;
   border: thin solid black;
-  border-radius: 5px;
+  border-radius: var(--curve);
   width: 1rem;
   height: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.enumeration::before {
+  counter-increment: enumerationCounter;
+  content: counter(enumerationCounter);
 }
 
 .game-slice.active .enumeration {
@@ -302,7 +331,7 @@ input[type="checkbox"] {
 
 .key-peg-holder,
 .code-peg-holder {
-  border-radius: 10rem;
+  border-radius: 50%;
   border: thin solid black;
   justify-content: center;
   align-items: center;
@@ -335,7 +364,8 @@ input[type="checkbox"] {
 }
 
 .code-peg.manual {
-  scale: 1.15;
+  transform: scale(1.1);
+  transition: all 0.2ms;
 }
 
 .code-peg::after {
@@ -363,8 +393,8 @@ input[type="checkbox"] {
 #userInteractionContainer {
   background: whitesmoke;
   padding: 30px 17.5px;
-  border-radius: 2em;
-  width: 50%;
+  border-radius: var(--curve);
+  width: fit-content;
   min-width: 550px;
   margin: 35px auto;
   top: 50%;
@@ -408,6 +438,8 @@ input[type="checkbox"] {
 
 #codePegPicker .picker {
   display: flex;
+  max-width: 300px;
+  margin: 0 auto;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
@@ -465,14 +497,6 @@ hr {
   gap: 0.5rem;
 }
 
-.reveal-under-768 {
-  display: none;
-}
-
-.reveal-above-768 {
-  display: inline-flex;
-}
-
 .codemaker-revealed-code {
   display: flex;
   flex-direction: row;
@@ -521,6 +545,18 @@ hr {
   }
 }
 
+.footer-transferred-content {
+  display: none;
+}
+
+.reveal-under-768 {
+  display: none;
+}
+
+.reveal-above-768 {
+  display: inline-flex;
+}
+
 /* responsive design for phones */
 @media (max-width: 768px) {
   html {
@@ -531,11 +567,11 @@ hr {
     padding: 20px;
   }
 
-  .revealUnder768 {
+  .reveal-under-768 {
     display: inline-flex;
   }
 
-  .revealAbove768 {
+  .reveal-above-768 {
     display: none;
   }
 
@@ -619,7 +655,7 @@ hr {
   }
 
   .game-slice {
-    scale: 0.75;
+    transform: scale(75%);
   }
 
   #gameSlices {
@@ -661,11 +697,18 @@ hr {
 
   #gameSlices,
   #board {
-    overflow-x: hidden;
+    overflow-x: scroll;
   }
 
   .game-slice {
-    scale: 0.5;
+    transform: scale(65%);
+    margin-bottom: -40px;
+  }
+}
+
+@media (max-width: 378px) {
+  .game-slice {
+    transform: scale(50%);
     margin-bottom: -60px;
   }
 }
@@ -676,12 +719,20 @@ hr {
   }
 }
 
-@media (max-width: 355px) {
-  #codePegPicker {
-    scale: 0.8;
+@media (max-width: 280px) {
+  #userInteractionContainer {
+    flex-direction: column;
+    overflow: scroll;
+    height: fit-content;
+    padding: 0;
   }
 
-  #codePegPicker .picker {
-    width: 150px;
+  #userInteractionContainer > * {
+    width: 5000px;
+  }
+
+  .game-slice {
+    transform: scale(40%);
+    margin-bottom: -70px;
   }
 }

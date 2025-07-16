@@ -54,21 +54,27 @@
             <div class="game-slice">
               <div class="code-peg-holders"> </div>
               <div class="key-peg-holders"> </div>
+              <div class="enumeration"></div>
             </div>
           </div>
         </div>
         <div id="userInteractionContainer">
           <div id="codePegPicker" style="min-width: 150px">
-            <label class="bold-subtitle">
-              <span style="user-select: none">Picker</span>
-              <span style="cursor: pointer">
-                <input type="checkbox" id="manualInputCheckbox" />
-                <i data-lucide="wrench"></i>
-              </span>
-            </label>
+            <label
+              class="bold-subtitle"
+              style="user-select: none; white-space: nowrap;"
+              id="manualInputLabel"
+              for="manualInputCheckbox"
+              ><i data-lucide="wrench" style="min-width: 24px;"></i>Manual Input
+              <input
+                style="margin-left: 0.25rem; min-width: 24px;"
+                type="checkbox"
+                id="manualInputCheckbox"
+            /></label>
+
             <div class="picker"></div>
             <!--prettier-ignore-->
-            <button class="btn btn-error reveal-above-768" id="deleteCodePegButton1">Delete</button>
+            <button class="btn btn-error" id="deleteCodePegButton1">Delete</button>
           </div>
           <div id="otherOptions">
             <label class="bold-subtitle" style="user-select: none"
@@ -80,7 +86,7 @@
                   id="codeViewContainer"
                   aria-label="check the code from this game">
                   <img
-                    src="./favicon.png"
+                    src="assets/favicon.png"
                     style="width: 25px; height: 25px"
                     alt="code view"
                     role="button"
@@ -90,11 +96,6 @@
                   >New Game</button
                 >
               </div>
-              <button
-                class="btn btn-error reveal-under-768"
-                id="deleteCodePegButton2"
-                >Delete</button
-              >
               <button class="btn btn-success" id="submitGuessButton">
                 Guess
               </button>
@@ -132,8 +133,8 @@
           <li>New Game: <kbd>SHIFT</kbd> + <kbd>ENTER</kbd></li>
           <li
             >Toggle <i>Manual Peg Input Mode</i>: <kbd>SHIFT</kbd> +
-            <kbd>CLICK</kbd> (on code peg of choice)</li
-          >
+            <kbd>CLICK</kbd> (on code peg of choice)
+          </li>
         </ul>
         <p>
           To further improve accessibility, all clickable elements are focusable
@@ -267,6 +268,14 @@
               >) after first input</label
             >
           </div>
+        </form>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            margin-top: 1rem;
+            gap: 0.5rem;
+          ">
           <button
             type="submit"
             class="btn btn-success"
@@ -274,12 +283,18 @@
             id="settingsFormButton"
             >Save</button
           >
-        </form>
-        <div>
-          <button class="modal-close-button btn">Close</button>
-          <button class="btn btn-error" id="resetUserSettingsButton"
-            >Reset To Defaults</button
-          >
+          <div
+            style="
+              display: flex;
+              flex-direction: row;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+            ">
+            <button class="modal-close-button btn">Close</button>
+            <button class="btn btn-error" id="resetUserSettingsButton"
+              >Reset To Defaults</button
+            >
+          </div>
         </div>
       </dialog>
       <dialog
@@ -302,7 +317,7 @@
         </div>
       </dialog>
       <dialog id="codeViewDialog" aria-label="mastermind-html code view dialog">
-        <h1>The Code</h1>
+        <h2>The code was:</h2>
         <div></div>
         <button class="modal-close-button btn">Close</button>
       </dialog>
@@ -327,14 +342,14 @@
         <p class="header">Information</p>
         <div class="footer-buttons">
           <button id="howToPlayButton" class="btn"
-            ><i data-lucide="info" class="mr-small"></i>How To Play</button
+            ><i data-lucide="info" class="mr-small" style="min-width: 24px;"></i>How To Play</button
           >
           <button id="keybindsButton" class="btn reveal-above-768">
             <i data-lucide="keyboard" class="mr-small"></i>Keybinds &
             Accessibility
           </button>
           <button id="settingsButton" class="btn"
-            ><i data-lucide="settings" class="mr-small"></i>Settings</button
+            ><i data-lucide="settings" class="mr-small" style="min-width: 24px;"></i>Settings</button
           >
           <button id="statsButton" class="btn"
             ><i data-lucide="file-chart-column" class="mr-small"></i
@@ -345,7 +360,15 @@
     </div>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-      lucide.createIcons();
+      lucide.createIcons({
+        icons: {
+          Settings: lucide.Settings,
+          FileChartColumn: lucide.FileChartColumn,
+          Wrench: lucide.Wrench,
+          Info: lucide.Info,
+          Keyboard: lucide.Keyboard,
+        },
+      });
     </script>
   </body>
 </html>
